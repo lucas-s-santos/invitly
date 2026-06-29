@@ -1,0 +1,208 @@
+{
+  "brand": "Invitly",
+  "nav": {
+    "templates": "Templates",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "login": "Log in",
+    "dashboard": "My invites",
+    "createCta": "Create free invite"
+  },
+  "hero": {
+    "badge": "✨ Animated digital invites",
+    "title": "Invites that delight before the party even starts",
+    "highlight": "delight",
+    "subtitle": "Create animated invites for weddings, birthdays, baby showers and more. Customize in minutes, share with a link and collect RSVPs.",
+    "ctaPrimary": "Create my free invite",
+    "ctaSecondary": "Browse templates",
+    "trust": "No credit card. You only pay when you publish."
+  },
+  "stats": {
+    "created": "invites created",
+    "events": "event types",
+    "rsvps": "RSVPs confirmed"
+  },
+  "how": {
+    "title": "From invite to share in 3 steps",
+    "subtitle": "That simple. Nothing to install, right from your browser.",
+    "step1": {
+      "title": "Pick a template",
+      "desc": "Start from one of the animated templates crafted for each kind of event."
+    },
+    "step2": {
+      "title": "Customize",
+      "desc": "Edit text, colors, photos and the countdown in the live editor."
+    },
+    "step3": {
+      "title": "Share",
+      "desc": "Publish and send the link over WhatsApp. Track who confirmed."
+    }
+  },
+  "templates": {
+    "title": "A template for every celebration",
+    "subtitle": "Animated, ready-to-customize designs.",
+    "premium": "Premium",
+    "free": "Free",
+    "viewAll": "See all templates"
+  },
+  "social": {
+    "title": "Thousands of invites already delighting guests",
+    "suffix": "invites created with Invitly"
+  },
+  "testimonials": {
+    "title": "People love it",
+    "subtitle": "Stories from those who made the invite part of the party.",
+    "items": [
+      {
+        "name": "Mariana Alves",
+        "role": "Bride — Wedding",
+        "quote": "My guests thought I hired a designer. It looked stunning and took me 15 minutes."
+      },
+      {
+        "name": "Rafael Souza",
+        "role": "Birthday dad",
+        "quote": "The animated confetti was a hit with the kids. And I tracked every RSVP in one place."
+      },
+      {
+        "name": "Camila Nunes",
+        "role": "Gender reveal",
+        "quote": "The opening-curtain animation built the suspense. Worth every penny."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Pay only for the invite you publish",
+    "subtitle": "Create and customize for free. You only pay when you decide to publish.",
+    "perInvite": "per invite",
+    "mostPopular": "Most popular",
+    "cta": "Get started",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "price": "$1.99",
+        "features": [
+          "1 template of your choice",
+          "Public invite page",
+          "RSVP confirmations",
+          "Shareable link"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "$3.99",
+        "features": [
+          "All templates",
+          "Premium animations",
+          "Views analytics",
+          "Invite QR code",
+          "AI text suggestions"
+        ]
+      },
+      "pack": {
+        "name": "5-Invite Pack",
+        "price": "$7.99",
+        "features": [
+          "5 premium invites",
+          "Save 60%",
+          "Great for multiple events"
+        ]
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know before creating your invite.",
+    "items": [
+      {
+        "q": "Do I have to pay to create the invite?",
+        "a": "No. You create and fully customize it for free. Payment only happens when you decide to publish and share."
+      },
+      {
+        "q": "How do my guests receive the invite?",
+        "a": "After publishing you get a unique link. Just send it over WhatsApp, Instagram or anywhere you like."
+      },
+      {
+        "q": "Can I see who confirmed?",
+        "a": "Yes. Each invite has a guest list with name, number of companions and a message."
+      },
+      {
+        "q": "Does the invite work on mobile?",
+        "a": "Yes. Invites are 100% responsive and designed mobile-first."
+      },
+      {
+        "q": "Can I edit after publishing?",
+        "a": "You can. Adjust the text and details anytime from your dashboard."
+      },
+      {
+        "q": "Which payment methods are accepted?",
+        "a": "Payments are processed by Kiwify, with credit card, Pix and bank slip."
+      }
+    ]
+  },
+  "finalCta": {
+    "title": "Your party deserves an invite to match",
+    "subtitle": "Create it now, for free. You only pay when you love the result.",
+    "button": "Create my free invite"
+  },
+  "footer": {
+    "tagline": "Animated digital invites for every moment.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "links": {
+      "templates": "Templates",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "about": "About",
+      "contact": "Contact",
+      "privacy": "Privacy",
+      "terms": "Terms of use"
+    },
+    "rights": "All rights reserved."
+  },
+  "categories": {
+    "wedding": "Wedding",
+    "birthday_kids": "Kids Birthday",
+    "birthday_adult": "Adult Birthday",
+    "graduation": "Graduation",
+    "baby_shower": "Baby Shower / Reveal",
+    "festa_junina": "June Festival",
+    "halloween": "Halloween",
+    "christmas": "Christmas / New Year",
+    "corporate": "Corporate"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Log in to access your invites.",
+    "signupTitle": "Create your account",
+    "signupSubtitle": "Start creating invites in minutes.",
+    "tabLogin": "Log in",
+    "tabSignup": "Sign up",
+    "name": "Name",
+    "namePlaceholder": "What should we call you?",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "submitLogin": "Log in",
+    "submitSignup": "Create account",
+    "googleButton": "Continue with Google",
+    "or": "or",
+    "signupSuccess": "Account created! Check your email to confirm your registration.",
+    "notConfigured": "Supabase isn't configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file to enable login.",
+    "backHome": "Back to home"
+  },
+  "common": {
+    "loading": "Loading...",
+    "comingSoon": "Coming soon",
+    "logout": "Log out",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "The link you followed doesn't exist or has expired.",
+    "button": "Back to home"
+  }
+}

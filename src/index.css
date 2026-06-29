@@ -1,0 +1,193 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.75rem;
+
+  /* Marca Invitly */
+  --brand-ink: #1a0533; /* roxo escuro */
+  --brand-pink: #ff6b9d; /* rosa vibrante */
+  --brand-gold: #ffd700; /* dourado */
+
+  --background: #ffffff;
+  --foreground: #1a0533;
+  --card: #ffffff;
+  --card-foreground: #1a0533;
+  --popover: #ffffff;
+  --popover-foreground: #1a0533;
+  --primary: #ff6b9d;
+  --primary-foreground: #ffffff;
+  --secondary: #f6f1fc;
+  --secondary-foreground: #1a0533;
+  --muted: #f5f3f7;
+  --muted-foreground: #6b6478;
+  --accent: #fff4d6;
+  --accent-foreground: #1a0533;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: #ece8f1;
+  --input: #ece8f1;
+  --ring: #ff6b9d;
+}
+
+.dark {
+  --background: #140427;
+  --foreground: #f6f2fb;
+  --card: #1d0a38;
+  --card-foreground: #f6f2fb;
+  --popover: #1d0a38;
+  --popover-foreground: #f6f2fb;
+  --primary: #ff6b9d;
+  --primary-foreground: #1a0533;
+  --secondary: #2a1149;
+  --secondary-foreground: #f6f2fb;
+  --muted: #2a1149;
+  --muted-foreground: #b6a9cc;
+  --accent: #3a1a5e;
+  --accent-foreground: #ffd700;
+  --destructive: #fb7185;
+  --destructive-foreground: #1a0533;
+  --border: #34204f;
+  --input: #34204f;
+  --ring: #ff6b9d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-gold: var(--brand-gold);
+
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    margin: 0;
+    min-height: 100svh;
+  }
+}
+
+/* Gradiente da marca usado no hero / banners da landing */
+@utility bg-brand-aurora {
+  background-color: var(--brand-ink);
+  background-image:
+    radial-gradient(60% 80% at 15% 10%, rgba(255, 107, 157, 0.35), transparent 60%),
+    radial-gradient(50% 60% at 85% 20%, rgba(255, 215, 0, 0.18), transparent 55%),
+    radial-gradient(80% 90% at 50% 110%, rgba(255, 107, 157, 0.25), transparent 60%);
+}
+
+/* ===== Efeitos dos convites ===== */
+@keyframes invitly-fall {
+  0% {
+    transform: translateY(-12vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(112vh) translateX(var(--sway, 0px))
+      rotate(var(--spin, 360deg));
+    opacity: 0.9;
+  }
+}
+
+.invitly-fall {
+  position: absolute;
+  top: 0;
+  will-change: transform, opacity;
+  animation: invitly-fall var(--duration, 9s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes invitly-flicker {
+  0%,
+  18%,
+  22%,
+  25%,
+  53%,
+  57%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 10px currentColor;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.4;
+    text-shadow: none;
+  }
+}
+
+.invitly-flicker {
+  animation: invitly-flicker 4s linear infinite;
+}
+
+@keyframes invitly-flutter {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+@keyframes invitly-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="invitly-float"],
+  [style*="invitly-flutter"] {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invitly-fall,
+  .invitly-flicker {
+    animation: none;
+  }
+}

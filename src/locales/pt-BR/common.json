@@ -1,0 +1,208 @@
+{
+  "brand": "Invitly",
+  "nav": {
+    "templates": "Templates",
+    "howItWorks": "Como funciona",
+    "pricing": "Preços",
+    "faq": "Dúvidas",
+    "login": "Entrar",
+    "dashboard": "Meus convites",
+    "createCta": "Criar convite grátis"
+  },
+  "hero": {
+    "badge": "✨ Convites digitais animados",
+    "title": "Convites que encantam antes da festa começar",
+    "highlight": "encantam",
+    "subtitle": "Crie convites animados para casamento, aniversário, chá de bebê e muito mais. Personalize em minutos, compartilhe por um link e receba as confirmações de presença.",
+    "ctaPrimary": "Criar meu convite grátis",
+    "ctaSecondary": "Ver templates",
+    "trust": "Sem cartão de crédito. Você só paga quando publicar."
+  },
+  "stats": {
+    "created": "convites criados",
+    "events": "tipos de evento",
+    "rsvps": "presenças confirmadas"
+  },
+  "how": {
+    "title": "Do convite ao compartilhamento em 3 passos",
+    "subtitle": "Simples assim. Sem instalar nada, direto do navegador.",
+    "step1": {
+      "title": "Escolha o template",
+      "desc": "Comece por um dos modelos animados pensados para cada tipo de evento."
+    },
+    "step2": {
+      "title": "Personalize",
+      "desc": "Edite textos, cores, fotos e a contagem regressiva no editor ao vivo."
+    },
+    "step3": {
+      "title": "Compartilhe",
+      "desc": "Publique e envie o link pelo WhatsApp. Acompanhe quem confirmou presença."
+    }
+  },
+  "templates": {
+    "title": "Um template para cada comemoração",
+    "subtitle": "Modelos animados e prontos para personalizar.",
+    "premium": "Premium",
+    "free": "Grátis",
+    "viewAll": "Ver todos os templates"
+  },
+  "social": {
+    "title": "Já são milhares de convites encantando convidados",
+    "suffix": "convites criados com o Invitly"
+  },
+  "testimonials": {
+    "title": "Quem usou, recomenda",
+    "subtitle": "Histórias de quem transformou o convite em parte da festa.",
+    "items": [
+      {
+        "name": "Mariana Alves",
+        "role": "Noiva — Casamento",
+        "quote": "Meus convidados acharam que eu tinha contratado um designer. Ficou lindo e levei 15 minutos."
+      },
+      {
+        "name": "Rafael Souza",
+        "role": "Pai do aniversariante",
+        "quote": "O confete animado fez o maior sucesso com a criançada. E ainda controlei as presenças num lugar só."
+      },
+      {
+        "name": "Camila Nunes",
+        "role": "Chá revelação",
+        "quote": "A animação da cortina abrindo deu aquele suspense. Valeu cada centavo."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Pague só pelo convite que publicar",
+    "subtitle": "Crie e personalize de graça. Você só paga quando decidir publicar.",
+    "perInvite": "por convite",
+    "mostPopular": "Mais popular",
+    "cta": "Começar agora",
+    "plans": {
+      "basic": {
+        "name": "Básico",
+        "price": "R$ 9,90",
+        "features": [
+          "1 template à escolha",
+          "Página pública do convite",
+          "Confirmação de presença (RSVP)",
+          "Link compartilhável"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "R$ 19,90",
+        "features": [
+          "Todos os templates",
+          "Animações premium",
+          "Analytics de visualizações",
+          "QR Code do convite",
+          "Sugestão de texto com IA"
+        ]
+      },
+      "pack": {
+        "name": "Pack 5 Convites",
+        "price": "R$ 39,90",
+        "features": [
+          "5 convites premium",
+          "Economia de 60%",
+          "Ideal para quem organiza vários eventos"
+        ]
+      }
+    }
+  },
+  "faq": {
+    "title": "Perguntas frequentes",
+    "subtitle": "Tudo o que você precisa saber antes de criar seu convite.",
+    "items": [
+      {
+        "q": "Preciso pagar para criar o convite?",
+        "a": "Não. Você cria e personaliza totalmente de graça. O pagamento só acontece quando você decide publicar e compartilhar."
+      },
+      {
+        "q": "Como meus convidados recebem o convite?",
+        "a": "Depois de publicar, você recebe um link único. É só enviar pelo WhatsApp, Instagram ou onde preferir."
+      },
+      {
+        "q": "Dá para saber quem confirmou presença?",
+        "a": "Sim. Cada convite tem uma lista de confirmados com nome, número de acompanhantes e recado."
+      },
+      {
+        "q": "O convite funciona no celular?",
+        "a": "Sim. Os convites são 100% responsivos e foram pensados primeiro para o celular."
+      },
+      {
+        "q": "Posso editar depois de publicar?",
+        "a": "Pode. Você ajusta os textos e detalhes a qualquer momento pelo seu painel."
+      },
+      {
+        "q": "Quais formas de pagamento são aceitas?",
+        "a": "O pagamento é processado pela Kiwify, com cartão de crédito, Pix e boleto."
+      }
+    ]
+  },
+  "finalCta": {
+    "title": "Sua festa merece um convite à altura",
+    "subtitle": "Crie agora, de graça. Você só paga quando amar o resultado.",
+    "button": "Criar meu convite grátis"
+  },
+  "footer": {
+    "tagline": "Convites digitais animados para todos os momentos.",
+    "product": "Produto",
+    "company": "Empresa",
+    "legal": "Legal",
+    "links": {
+      "templates": "Templates",
+      "pricing": "Preços",
+      "faq": "Dúvidas",
+      "about": "Sobre",
+      "contact": "Contato",
+      "privacy": "Privacidade",
+      "terms": "Termos de uso"
+    },
+    "rights": "Todos os direitos reservados."
+  },
+  "categories": {
+    "wedding": "Casamento",
+    "birthday_kids": "Aniversário Infantil",
+    "birthday_adult": "Aniversário Adulto",
+    "graduation": "Formatura",
+    "baby_shower": "Chá de Bebê / Revelação",
+    "festa_junina": "Festa Junina",
+    "halloween": "Halloween",
+    "christmas": "Natal / Ano Novo",
+    "corporate": "Corporativo"
+  },
+  "auth": {
+    "loginTitle": "Bem-vindo de volta",
+    "loginSubtitle": "Entre para acessar seus convites.",
+    "signupTitle": "Crie sua conta",
+    "signupSubtitle": "Comece a criar convites em minutos.",
+    "tabLogin": "Entrar",
+    "tabSignup": "Cadastrar",
+    "name": "Nome",
+    "namePlaceholder": "Como devemos te chamar?",
+    "email": "E-mail",
+    "emailPlaceholder": "voce@email.com",
+    "password": "Senha",
+    "passwordPlaceholder": "Mínimo de 6 caracteres",
+    "submitLogin": "Entrar",
+    "submitSignup": "Criar conta",
+    "googleButton": "Continuar com Google",
+    "or": "ou",
+    "signupSuccess": "Conta criada! Verifique seu e-mail para confirmar o cadastro.",
+    "notConfigured": "Supabase ainda não foi configurado. Adicione as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env para habilitar o login.",
+    "backHome": "Voltar para a página inicial"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "comingSoon": "Em breve",
+    "logout": "Sair",
+    "save": "Salvar",
+    "cancel": "Cancelar"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "subtitle": "O link que você acessou não existe ou expirou.",
+    "button": "Voltar ao início"
+  }
+}
