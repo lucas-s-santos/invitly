@@ -154,6 +154,51 @@ export function useUpdateInvite() {
   })
 }
 
+/** Exclui um convite (cascade remove rsvp e views). */
+export function useDeleteInvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      const { error } = await supabase.from("invites").delete().eq("id", id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: inviteKeys.mine })
+    },
+  })
+}
+
+/** Duplica um convite como novo rascunho. */
+export function useDuplicateInvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (source: Invite): Promise<Invite> => {
+      const { data: userData } = await supabase.auth.getUser()
+      const user = userData.user
+      if (!user) throw new Error("Você precisa estar logado.")
+
+      const title = `${source.title} (cópia)`
+      const { data, error } = await supabase
+        .from("invites")
+        .insert({
+          user_id: user.id,
+          slug: buildInviteSlug(title),
+          title,
+          category: source.category,
+          template_id: source.template_id,
+          data: source.data,
+        })
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: inviteKeys.mine })
+    },
+  })
+}
+
 /**
  * Publica o convite (temporário: até a Fase 3 com Kiwify, publicamos direto).
  */

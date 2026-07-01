@@ -7,6 +7,7 @@ import {
   Cloud,
   Copy,
   ExternalLink,
+  Eye,
   Image as ImageIcon,
   Loader2,
   Monitor,
@@ -14,11 +15,15 @@ import {
   Smartphone,
   Trash2,
   Users,
+  X,
 } from "lucide-react"
+
+import { toast } from "sonner"
 
 import { useInvite, usePublishInvite, useUpdateInvite } from "@/hooks/useInvites"
 import { getTemplate } from "@/lib/templates"
 import { uploadInviteImage } from "@/lib/storage"
+import { BACKGROUND_PATTERNS, type BackgroundPattern } from "@/lib/backgrounds"
 import { cn } from "@/lib/utils"
 import type { InviteFields } from "@/types"
 import { Button } from "@/components/ui/button"
@@ -39,6 +44,7 @@ export default function Editor() {
 
   const [fields, setFields] = useState<InviteFields | null>(null)
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile")
+  const [showPreview, setShowPreview] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -98,9 +104,33 @@ export default function Editor() {
     setFields((prev) => (prev ? { ...prev, [key]: value } : prev))
   }
 
+  function applyPattern(p: BackgroundPattern) {
+    dirtyRef.current = true
+    setFields((prev) =>
+      prev
+        ? {
+            ...prev,
+            background_color: p.css,
+            text_mode: p.text,
+            background_image: undefined,
+          }
+        : prev,
+    )
+  }
+
+  function resetBackground() {
+    dirtyRef.current = true
+    setFields((prev) =>
+      prev
+        ? { ...prev, background_color: undefined, text_mode: undefined }
+        : prev,
+    )
+  }
+
   async function copyLink() {
     await navigator.clipboard.writeText(publicUrl)
     setCopied(true)
+    toast.success("Link copiado!")
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -111,12 +141,31 @@ export default function Editor() {
     try {
       const url = await uploadInviteImage(file, id)
       set("background_image", url)
+      toast.success("Foto de fundo atualizada!")
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Falha no upload.")
+      const msg = err instanceof Error ? err.message : "Falha no upload."
+      setUploadError(msg)
+      toast.error(msg)
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ""
     }
+  }
+
+  function handlePublish() {
+    if (!invite || !fields) return
+    const missing: string[] = []
+    if (!fields.title.trim()) missing.push("título")
+    if (!fields.event_date) missing.push("data do evento")
+    if (missing.length > 0) {
+      toast.error(`Preencha ${missing.join(" e ")} antes de publicar.`)
+      return
+    }
+    publish.mutate(invite.id, {
+      onSuccess: () =>
+        toast.success("Convite publicado! 🎉 Já pode compartilhar."),
+      onError: () => toast.error("Não foi possível publicar. Tente de novo."),
+    })
   }
 
   return (
@@ -156,7 +205,7 @@ export default function Editor() {
             ) : (
               <Button
                 size="sm"
-                onClick={() => publish.mutate(invite.id)}
+                onClick={handlePublish}
                 disabled={publish.isPending}
               >
                 {publish.isPending ? (
@@ -204,7 +253,7 @@ export default function Editor() {
             </div>
           ) : null}
 
-          <Field label="Título do evento">
+          <Field label="Título do evento" hint={`${fields.title.length}/80`}>
             <Input
               value={fields.title}
               maxLength={80}
@@ -241,7 +290,7 @@ export default function Editor() {
               onChange={(e) => set("location", e.target.value)}
             />
           </Field>
-          <Field label="Mensagem">
+          <Field label="Mensagem" hint={`${fields.message.length}/400`}>
             <Textarea
               value={fields.message}
               maxLength={400}
@@ -249,6 +298,42 @@ export default function Editor() {
               onChange={(e) => set("message", e.target.value)}
             />
           </Field>
+
+          {/* Padrões de fundo */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">Padrões de fundo</p>
+            <div className="mt-3 grid grid-cols-5 gap-2">
+              <button
+                type="button"
+                onClick={resetBackground}
+                title="Usar o fundo do template"
+                className={cn(
+                  "flex aspect-square items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
+                  !fields.background_color
+                    ? "border-primary ring-2 ring-primary/30"
+                    : "border-border hover:border-primary/50",
+                )}
+              >
+                Tema
+              </button>
+              {BACKGROUND_PATTERNS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => applyPattern(p)}
+                  title={p.name}
+                  aria-label={p.name}
+                  className={cn(
+                    "aspect-square rounded-lg border transition-transform hover:scale-105",
+                    fields.background_color === p.css
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border",
+                  )}
+                  style={{ background: p.css }}
+                />
+              ))}
+            </div>
+          </div>
 
           {/* Foto de fundo */}
           <div className="rounded-xl border border-border bg-card p-4">
@@ -337,6 +422,35 @@ export default function Editor() {
             <p className="mt-2 text-xs text-muted-foreground">
               Deixe em branco para usar as cores do template.
             </p>
+
+            <div className="mt-4">
+              <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                Cor do texto
+              </p>
+              <div className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+                {(
+                  [
+                    { v: undefined, label: "Auto" },
+                    { v: "dark", label: "Escuro" },
+                    { v: "light", label: "Claro" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => set("text_mode", opt.v)}
+                    className={cn(
+                      "rounded-md px-3 py-1 transition-colors",
+                      fields.text_mode === opt.v
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -356,6 +470,38 @@ export default function Editor() {
           </div>
         </div>
       </div>
+
+      {/* Prévia no mobile */}
+      <Button
+        size="lg"
+        onClick={() => setShowPreview(true)}
+        className="fixed bottom-5 right-5 z-30 shadow-xl lg:hidden"
+      >
+        <Eye className="size-4" />
+        Prévia
+      </Button>
+      {showPreview ? (
+        <div className="fixed inset-0 z-40 flex flex-col bg-background lg:hidden">
+          <div className="flex items-center justify-between border-b border-border p-3">
+            <span className="font-semibold">Prévia do convite</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPreview(false)}
+              aria-label="Fechar"
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <InviteRenderer
+              template={template}
+              fields={fields}
+              className="min-h-full"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -406,14 +552,23 @@ function DeviceButton({
 
 function Field({
   label,
+  hint,
   children,
 }: {
   label: string
+  hint?: string
   children: ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <Label>{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label>{label}</Label>
+        {hint ? (
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {hint}
+          </span>
+        ) : null}
+      </div>
       {children}
     </div>
   )

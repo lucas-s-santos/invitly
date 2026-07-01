@@ -35,7 +35,20 @@ export function InviteRenderer({
   const hasFlicker = animTypes.has("flicker")
 
   const bgImage = fields.background_image
-  const textColor = bgImage ? "#ffffff" : style.textColor
+  const textColor = bgImage
+    ? "#ffffff"
+    : fields.text_mode === "light"
+      ? "#ffffff"
+      : fields.text_mode === "dark"
+        ? "#1a0533"
+        : style.textColor
+  const mutedColor = bgImage
+    ? "rgba(255,255,255,0.8)"
+    : fields.text_mode === "light"
+      ? "rgba(255,255,255,0.72)"
+      : fields.text_mode === "dark"
+        ? "rgba(26,5,51,0.6)"
+        : style.mutedColor
 
   const anim = animate
     ? "animate-in fade-in slide-in-from-bottom-3 fill-mode-both duration-700"
@@ -123,7 +136,7 @@ export function InviteRenderer({
         {fields.location ? (
           <p
             className={cn("text-sm", anim)}
-            style={{ color: style.mutedColor, ...delay(350) }}
+            style={{ color: mutedColor, ...delay(350) }}
           >
             {fields.location}
           </p>
@@ -149,7 +162,7 @@ export function InviteRenderer({
             <Countdown
               target={eventDate}
               accentColor={accent}
-              mutedColor={style.mutedColor}
+              mutedColor={mutedColor}
             />
           </div>
         ) : null}

@@ -15,6 +15,7 @@ import { getTemplate, TEMPLATES } from "@/lib/templates"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { BrandMark } from "@/components/BrandMark"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
 export default function Landing() {
@@ -49,8 +50,8 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="font-display text-xl font-extrabold">
-          {t("brand")}
+        <Link to="/" aria-label={t("brand")}>
+          <BrandMark />
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
           {links.map((l) => (
@@ -378,13 +379,16 @@ function Footer() {
           </p>
           <p className="mt-1">{t("footer.tagline")}</p>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           <a href="#precos" className="hover:text-foreground">
             {t("footer.links.pricing")}
           </a>
-          <a href="#faq" className="hover:text-foreground">
-            {t("footer.links.faq")}
-          </a>
+          <Link to="/privacidade" className="hover:text-foreground">
+            {t("footer.links.privacy")}
+          </Link>
+          <Link to="/termos" className="hover:text-foreground">
+            {t("footer.links.terms")}
+          </Link>
           <LanguageToggle />
         </div>
       </div>

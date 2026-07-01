@@ -3,23 +3,35 @@ import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
   ClipboardList,
+  Copy,
   Eye,
   LogOut,
+  MoreVertical,
   PartyPopper,
   Pencil,
   Plus,
+  Settings,
+  Trash2,
   Users,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/useAuth"
-import { useMyInvites } from "@/hooks/useInvites"
+import {
+  useDeleteInvite,
+  useDuplicateInvite,
+  useMyInvites,
+} from "@/hooks/useInvites"
 import { useMyRsvpSummary, type RsvpSummary } from "@/hooks/useRsvp"
 import { getTemplate } from "@/lib/templates"
 import { cn } from "@/lib/utils"
 import type { Invite, InviteFields, InviteStatus } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { BrandMark } from "@/components/BrandMark"
+import { ConfirmDialog } from "@/components/ConfirmDialog"
 
 const STATUS_META: Record<InviteStatus, { label: string; className: string }> = {
   draft: { label: "Rascunho", className: "bg-muted text-muted-foreground" },
@@ -54,14 +66,20 @@ export default function Dashboard() {
     <div className="min-h-svh bg-secondary/40">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="font-display text-xl font-extrabold">
-            {t("brand")}
+          <Link to="/" aria-label={t("brand")}>
+            <BrandMark />
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/conta" aria-label="Minha conta">
+                <Settings className="size-4" />
+                <span className="hidden sm:inline">Conta</span>
+              </Link>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => void signOut()}>
               <LogOut className="size-4" />
-              {t("common.logout")}
+              <span className="hidden sm:inline">{t("common.logout")}</span>
             </Button>
           </div>
         </div>
@@ -108,9 +126,21 @@ export default function Dashboard() {
 
         {/* Estados */}
         {isLoading ? (
-          <p className="mt-10 text-center text-muted-foreground">
-            {t("common.loading")}
-          </p>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="gap-0 overflow-hidden py-0">
+                <Skeleton className="aspect-[16/10] rounded-none" />
+                <div className="space-y-3 p-4">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <div className="flex gap-2 pt-1">
+                    <Skeleton className="h-8 flex-1" />
+                    <Skeleton className="h-8 flex-1" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         ) : isError ? (
           <p className="mt-10 text-center text-destructive">
             Não foi possível carregar seus convites.
@@ -140,6 +170,11 @@ function InviteCard({
   invite: Invite
   summary?: RsvpSummary
 }) {
+  const del = useDeleteInvite()
+  const dup = useDuplicateInvite()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
   const template = getTemplate(invite.template_id)
   const fields = invite.data as InviteFields
   const status = STATUS_META[invite.status]
@@ -149,6 +184,24 @@ function InviteCard({
     month: "short",
     year: "numeric",
   }).format(new Date(invite.created_at))
+
+  function handleDuplicate() {
+    setMenuOpen(false)
+    dup.mutate(invite, {
+      onSuccess: () => toast.success("Convite duplicado!"),
+      onError: () => toast.error("Não foi possível duplicar."),
+    })
+  }
+
+  function handleDelete() {
+    del.mutate(invite.id, {
+      onSuccess: () => {
+        toast.success("Convite excluído.")
+        setConfirmOpen(false)
+      },
+      onError: () => toast.error("Não foi possível excluir."),
+    })
+  }
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
@@ -179,7 +232,57 @@ function InviteCard({
         >
           {status.label}
         </span>
+
+        <div className="absolute right-2 top-2">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex size-7 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition-colors hover:bg-black/50"
+            aria-label="Mais opções"
+          >
+            <MoreVertical className="size-4" />
+          </button>
+          {menuOpen ? (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg border border-border bg-popover py-1 text-popover-foreground shadow-lg">
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                >
+                  <Copy className="size-4" />
+                  Duplicar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setConfirmOpen(true)
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-secondary"
+                >
+                  <Trash2 className="size-4" />
+                  Excluir
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Excluir convite?"
+        description={`"${invite.title}" e todas as confirmações serão removidos. Essa ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+        destructive
+        loading={del.isPending}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
       <CardContent className="p-4">
         <p className="truncate font-semibold">{invite.title}</p>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

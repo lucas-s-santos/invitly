@@ -14,6 +14,9 @@ const Checkout = lazy(() => import("@/pages/Checkout"))
 const PublicInvite = lazy(() => import("@/pages/PublicInvite"))
 const Rsvp = lazy(() => import("@/pages/Rsvp"))
 const GuestList = lazy(() => import("@/pages/GuestList"))
+const Account = lazy(() => import("@/pages/Account"))
+const Privacy = lazy(() => import("@/pages/Privacy"))
+const Terms = lazy(() => import("@/pages/Terms"))
 const NotFound = lazy(() => import("@/pages/NotFound"))
 
 export default function App() {
@@ -25,6 +28,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/convite/:slug" element={<PublicInvite />} />
         <Route path="/convite/:slug/rsvp" element={<Rsvp />} />
+        <Route path="/privacidade" element={<Privacy />} />
+        <Route path="/termos" element={<Terms />} />
 
         {/* Autenticado */}
         <Route
@@ -64,6 +69,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <GuestList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/conta"
+          element={
+            <ProtectedRoute>
+              <Account />
             </ProtectedRoute>
           }
         />
