@@ -105,12 +105,16 @@ function HeroPhone() {
     <div className="flex justify-center">
       <div className="relative w-[300px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[340px]">
         <div className="relative aspect-[1000/1500]">
-          {/* Convites (atrás) — recortados no formato da tela do celular */}
+          {/* Convites (atrás) — recortados no formato exato da tela (máscara) */}
           <div
-            className="absolute inset-0 drop-shadow-2xl"
+            className="absolute inset-0"
             style={{
-              clipPath:
-                "polygon(69.8% 5.7%, 80.5% 84.7%, 69.8% 93.9%, 20.1% 83.4%)",
+              WebkitMaskImage: "url(/hero-phone-mask.png)",
+              maskImage: "url(/hero-phone-mask.png)",
+              WebkitMaskSize: "100% 100%",
+              maskSize: "100% 100%",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
             }}
           >
             {HERO_CYCLE.map((id, i) => {
