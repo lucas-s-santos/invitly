@@ -16,6 +16,7 @@ import { CATEGORIES } from "@/lib/categories"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { BrandMark } from "@/components/BrandMark"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
@@ -62,6 +63,7 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
           ))}
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle className="hidden sm:inline-flex" />
           <LanguageToggle className="hidden sm:inline-flex" />
           <Button asChild variant="ghost" size="sm">
             <Link to="/login">{t("nav.login")}</Link>

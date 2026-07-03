@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -95,7 +96,10 @@ export default function Login() {
               {t("brand")}
             </Link>
           </Button>
-          <LanguageToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">

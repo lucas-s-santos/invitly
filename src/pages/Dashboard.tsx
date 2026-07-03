@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { LanguageToggle } from "@/components/LanguageToggle"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { BrandMark } from "@/components/BrandMark"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 
@@ -70,6 +71,7 @@ export default function Dashboard() {
             <BrandMark />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             <LanguageToggle />
             <Button asChild variant="ghost" size="sm">
               <Link to="/conta" aria-label="Minha conta">

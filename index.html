@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Invitly — crie convites digitais animados para festas e eventos em minutos. Personalize, compartilhe e confirme presenças." />
 
+    <!-- Tema (claro/escuro) aplicado antes da renderização para evitar flash -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("invitly-theme");
+          var dark =
+            t === "dark" ||
+            (!t && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Open Graph (default; substituído por convite na página pública) -->
     <meta property="og:title" content="Invitly — Convites digitais animados" />
     <meta property="og:description" content="Crie convites lindos e anime sua festa. Compartilhe por link e receba confirmações de presença." />
