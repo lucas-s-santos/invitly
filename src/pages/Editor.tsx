@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import {
   ArrowLeft,
   Check,
@@ -20,7 +20,7 @@ import {
 
 import { toast } from "sonner"
 
-import { useInvite, usePublishInvite, useUpdateInvite } from "@/hooks/useInvites"
+import { useInvite, useUpdateInvite } from "@/hooks/useInvites"
 import { getTemplate } from "@/lib/templates"
 import { uploadInviteImage } from "@/lib/storage"
 import { BACKGROUND_PATTERNS, type BackgroundPattern } from "@/lib/backgrounds"
@@ -40,7 +40,7 @@ export default function Editor() {
   const { id } = useParams()
   const { data: invite, isLoading, isError } = useInvite(id)
   const update = useUpdateInvite()
-  const publish = usePublishInvite()
+  const navigate = useNavigate()
 
   const [fields, setFields] = useState<InviteFields | null>(null)
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile")
@@ -161,11 +161,7 @@ export default function Editor() {
       toast.error(`Preencha ${missing.join(" e ")} antes de publicar.`)
       return
     }
-    publish.mutate(invite.id, {
-      onSuccess: () =>
-        toast.success("Convite publicado! 🎉 Já pode compartilhar."),
-      onError: () => toast.error("Não foi possível publicar. Tente de novo."),
-    })
+    navigate(`/checkout/${invite.id}`)
   }
 
   return (
@@ -203,16 +199,8 @@ export default function Editor() {
                 </a>
               </Button>
             ) : (
-              <Button
-                size="sm"
-                onClick={handlePublish}
-                disabled={publish.isPending}
-              >
-                {publish.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Rocket className="size-4" />
-                )}
+              <Button size="sm" onClick={handlePublish}>
+                <Rocket className="size-4" />
                 Publicar
               </Button>
             )}
