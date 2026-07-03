@@ -58,8 +58,8 @@ export default function Checkout() {
     if (!kiwifyUrl || !invite) return
     setRedirecting(true)
     const sep = kiwifyUrl.includes("?") ? "&" : "?"
-    // s1 = id do convite (volta no webhook para publicarmos o convite certo)
-    window.location.href = `${kiwifyUrl}${sep}s1=${invite.id}`
+    // sck = código de rastreio da Kiwify (volta no webhook p/ publicar o convite certo)
+    window.location.href = `${kiwifyUrl}${sep}sck=${invite.id}`
   }
 
   return (

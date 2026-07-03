@@ -65,7 +65,22 @@ export default async function handler(req, res) {
   ).toLowerCase()
   const tracking =
     payload.TrackingParameters || payload.tracking_parameters || {}
-  const inviteId = tracking.s1 || tracking.src || payload.s1 || null
+
+  // O ID do convite é um UUID enviado no `sck`. Procuramos por ele de forma
+  // robusta: no sck/src, e como fallback qualquer campo de rastreio que seja UUID.
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  let inviteId =
+    tracking.sck || tracking.s1 || tracking.src || payload.sck || null
+  if (!inviteId || !UUID_RE.test(String(inviteId))) {
+    inviteId = null
+    for (const v of Object.values(tracking)) {
+      if (typeof v === "string" && UUID_RE.test(v)) {
+        inviteId = v
+        break
+      }
+    }
+  }
 
   // Log para inspeção nos logs da Vercel (finalizamos os campos após a venda de teste)
   console.log(
