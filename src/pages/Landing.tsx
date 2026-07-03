@@ -270,22 +270,25 @@ function FeaturedTemplates({ ctaTo }: { ctaTo: string }) {
           title={t("templates.title")}
           subtitle={t("templates.subtitle")}
         />
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
+        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-8 md:grid-cols-3">
           {featured.map((tpl) => (
-            <div
-              key={tpl.id}
-              className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform hover:-translate-y-1"
-            >
-              <div className="relative aspect-[3/4] overflow-hidden">
-                <TemplatePreview
-                  template={tpl}
-                  className="absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-105"
-                />
+            <div key={tpl.id} className="group flex flex-col items-center">
+              <div className="w-full max-w-[190px] transition-transform duration-300 group-hover:-translate-y-2">
+                {/* Moldura de celular */}
+                <div className="relative overflow-hidden rounded-[1.9rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-xl">
+                  <div className="absolute inset-x-0 top-0 z-10 flex justify-center">
+                    <div className="h-3 w-1/4 rounded-b-lg bg-neutral-900" />
+                  </div>
+                  <TemplatePreview
+                    template={tpl}
+                    baseW={300}
+                    baseH={640}
+                    className="w-full"
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-2 p-4">
-                <span className="truncate text-sm font-semibold">
-                  {tpl.name}
-                </span>
+              <div className="mt-4 flex items-center gap-2">
+                <span className="text-sm font-semibold">{tpl.name}</span>
                 <span
                   className={cn(
                     "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
