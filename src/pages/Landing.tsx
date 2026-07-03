@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
 import { BrandMark } from "@/components/BrandMark"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
+import { InviteRenderer } from "@/components/invite/InviteRenderer"
 
 export default function Landing() {
   const { user } = useAuth()
@@ -102,9 +103,16 @@ function HeroPhone() {
 
   return (
     <div className="flex justify-center">
-      <div className="relative w-[250px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[280px]">
-        <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-black/90 bg-black shadow-2xl">
-          <div className="relative aspect-[300/400]">
+      <div className="relative w-[300px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[340px]">
+        <div className="relative aspect-[1000/1500]">
+          {/* Convites (atrás) — recortados no formato da tela do celular */}
+          <div
+            className="absolute inset-0 drop-shadow-2xl"
+            style={{
+              clipPath:
+                "polygon(69.8% 5.7%, 80.5% 84.7%, 69.8% 93.9%, 20.1% 83.4%)",
+            }}
+          >
             {HERO_CYCLE.map((id, i) => {
               const template = getTemplate(id)
               if (!template) return null
@@ -115,14 +123,23 @@ function HeroPhone() {
                   className="absolute inset-0 transition-opacity duration-700 ease-in-out"
                   style={{ opacity: i === index ? 1 : 0 }}
                 >
-                  <TemplatePreview
+                  <InviteRenderer
                     template={template}
+                    fields={template.defaultData}
+                    preview
                     className="h-full w-full"
                   />
                 </div>
               )
             })}
           </div>
+          {/* Moldura do celular (na frente; a tela é transparente) */}
+          <img
+            src="/hero-phone.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full select-none"
+          />
         </div>
       </div>
     </div>
