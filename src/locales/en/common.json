@@ -74,41 +74,17 @@
   "pricing": {
     "title": "Pay only for the invite you publish",
     "subtitle": "Create and customize for free. You only pay when you decide to publish.",
+    "price": "$2.90",
     "perInvite": "per invite",
-    "mostPopular": "Most popular",
-    "cta": "Get started",
-    "plans": {
-      "basic": {
-        "name": "Basic",
-        "price": "$1.99",
-        "features": [
-          "1 template of your choice",
-          "Public invite page",
-          "RSVP confirmations",
-          "Shareable link"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "price": "$3.99",
-        "features": [
-          "All templates",
-          "Premium animations",
-          "Views analytics",
-          "Invite QR code",
-          "AI text suggestions"
-        ]
-      },
-      "pack": {
-        "name": "5-Invite Pack",
-        "price": "$7.99",
-        "features": [
-          "5 premium invites",
-          "Save 60%",
-          "Great for multiple events"
-        ]
-      }
-    }
+    "cta": "Create my invite",
+    "note": "No subscription. You only pay when you publish.",
+    "features": [
+      "Published, shareable invite page",
+      "Animations and countdown",
+      "Unlimited RSVP confirmations",
+      "QR code and add to calendar",
+      "Guest list + analytics"
+    ]
   },
   "faq": {
     "title": "Frequently asked questions",

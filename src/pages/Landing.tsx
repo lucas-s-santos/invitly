@@ -235,11 +235,8 @@ function FeaturedTemplates({ ctaTo }: { ctaTo: string }) {
 
 function Pricing({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
-  const plans = [
-    { key: "basic", featured: false },
-    { key: "premium", featured: true },
-    { key: "pack", featured: false },
-  ] as const
+  const price = import.meta.env.VITE_KIWIFY_PRICE || t("pricing.price")
+  const features = t("pricing.features", { returnObjects: true }) as string[]
 
   return (
     <section id="precos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -247,55 +244,29 @@ function Pricing({ ctaTo }: { ctaTo: string }) {
         title={t("pricing.title")}
         subtitle={t("pricing.subtitle")}
       />
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {plans.map((plan) => {
-          const name = t(`pricing.plans.${plan.key}.name`)
-          const price = t(`pricing.plans.${plan.key}.price`)
-          const features = t(`pricing.plans.${plan.key}.features`, {
-            returnObjects: true,
-          }) as string[]
-
-          return (
-            <div
-              key={plan.key}
-              className={cn(
-                "relative flex flex-col rounded-2xl border p-7",
-                plan.featured
-                  ? "border-primary bg-card shadow-lg ring-1 ring-primary/30"
-                  : "border-border bg-card",
-              )}
-            >
-              {plan.featured ? (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
-                  {t("pricing.mostPopular")}
-                </span>
-              ) : null}
-              <h3 className="font-display text-lg font-bold">{name}</h3>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-display text-4xl font-black">{price}</span>
-                <span className="text-sm text-muted-foreground">
-                  {t("pricing.perInvite")}
-                </span>
-              </div>
-              <ul className="mt-6 flex-1 space-y-3 text-sm">
-                {features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                asChild
-                size="lg"
-                variant={plan.featured ? "default" : "outline"}
-                className="mt-7 w-full"
-              >
-                <Link to={ctaTo}>{t("pricing.cta")}</Link>
-              </Button>
-            </div>
-          )
-        })}
+      <div className="mx-auto mt-12 max-w-md">
+        <div className="rounded-2xl border border-primary bg-card p-8 shadow-lg ring-1 ring-primary/20">
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="font-display text-5xl font-black">{price}</span>
+            <span className="text-muted-foreground">
+              {t("pricing.perInvite")}
+            </span>
+          </div>
+          <ul className="mt-8 space-y-3 text-sm">
+            {features.map((f) => (
+              <li key={f} className="flex items-start gap-2">
+                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <Button asChild size="xl" className="mt-8 w-full">
+            <Link to={ctaTo}>{t("pricing.cta")}</Link>
+          </Button>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            {t("pricing.note")}
+          </p>
+        </div>
       </div>
     </section>
   )

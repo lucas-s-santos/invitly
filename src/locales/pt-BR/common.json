@@ -74,41 +74,17 @@
   "pricing": {
     "title": "Pague só pelo convite que publicar",
     "subtitle": "Crie e personalize de graça. Você só paga quando decidir publicar.",
+    "price": "R$ 12,90",
     "perInvite": "por convite",
-    "mostPopular": "Mais popular",
-    "cta": "Começar agora",
-    "plans": {
-      "basic": {
-        "name": "Básico",
-        "price": "R$ 9,90",
-        "features": [
-          "1 template à escolha",
-          "Página pública do convite",
-          "Confirmação de presença (RSVP)",
-          "Link compartilhável"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "price": "R$ 19,90",
-        "features": [
-          "Todos os templates",
-          "Animações premium",
-          "Analytics de visualizações",
-          "QR Code do convite",
-          "Sugestão de texto com IA"
-        ]
-      },
-      "pack": {
-        "name": "Pack 5 Convites",
-        "price": "R$ 39,90",
-        "features": [
-          "5 convites premium",
-          "Economia de 60%",
-          "Ideal para quem organiza vários eventos"
-        ]
-      }
-    }
+    "cta": "Criar meu convite",
+    "note": "Sem mensalidade. Você só paga quando publicar.",
+    "features": [
+      "Página do convite publicada e compartilhável",
+      "Animações e contagem regressiva",
+      "Confirmações de presença (RSVP) ilimitadas",
+      "QR Code e adicionar à agenda",
+      "Lista de confirmados + analytics"
+    ]
   },
   "faq": {
     "title": "Perguntas frequentes",

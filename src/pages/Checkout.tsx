@@ -35,7 +35,7 @@ export default function Checkout() {
   const [redirecting, setRedirecting] = useState(false)
 
   const kiwifyUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL
-  const price = import.meta.env.VITE_KIWIFY_PRICE || "R$ 14,90"
+  const price = import.meta.env.VITE_KIWIFY_PRICE || "R$ 12,90"
   const configured = Boolean(kiwifyUrl)
 
   if (isLoading) return <FullScreenLoader />
