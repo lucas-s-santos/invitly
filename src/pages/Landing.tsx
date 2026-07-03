@@ -12,6 +12,7 @@ import {
 
 import { useAuth } from "@/hooks/useAuth"
 import { getTemplate, TEMPLATES } from "@/lib/templates"
+import { CATEGORIES } from "@/lib/categories"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
@@ -259,9 +260,21 @@ function HowItWorks() {
   )
 }
 
+const FEATURED_CATEGORIES = [
+  "wedding",
+  "birthday_kids",
+  "birthday_adult",
+  "baby_shower",
+  "halloween",
+  "christmas",
+]
+
 function FeaturedTemplates({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
-  const featured = TEMPLATES.slice(0, 6)
+  const featured = FEATURED_CATEGORIES.flatMap((id) => {
+    const tpl = TEMPLATES.find((x) => x.category === id)
+    return tpl ? [tpl] : []
+  })
 
   return (
     <section id="templates" className="bg-secondary/40 py-20">
@@ -271,37 +284,31 @@ function FeaturedTemplates({ ctaTo }: { ctaTo: string }) {
           subtitle={t("templates.subtitle")}
         />
         <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-8 md:grid-cols-3">
-          {featured.map((tpl) => (
-            <div key={tpl.id} className="group flex flex-col items-center">
-              <div className="w-full max-w-[190px] transition-transform duration-300 group-hover:-translate-y-2">
-                {/* Moldura de celular */}
-                <div className="relative overflow-hidden rounded-[1.9rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-xl">
-                  <div className="absolute inset-x-0 top-0 z-10 flex justify-center">
-                    <div className="h-3 w-1/4 rounded-b-lg bg-neutral-900" />
+          {featured.map((tpl) => {
+            const cat = CATEGORIES.find((c) => c.id === tpl.category)
+            return (
+              <div key={tpl.id} className="group flex flex-col items-center">
+                <div className="w-full max-w-[190px] transition-transform duration-300 group-hover:-translate-y-2">
+                  {/* Moldura de celular */}
+                  <div className="relative overflow-hidden rounded-[1.9rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-xl">
+                    <div className="absolute inset-x-0 top-0 z-10 flex justify-center">
+                      <div className="h-3 w-1/4 rounded-b-lg bg-neutral-900" />
+                    </div>
+                    <TemplatePreview
+                      template={tpl}
+                      baseW={300}
+                      baseH={640}
+                      className="w-full"
+                    />
                   </div>
-                  <TemplatePreview
-                    template={tpl}
-                    baseW={300}
-                    baseH={640}
-                    className="w-full"
-                  />
                 </div>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
-                <span className="text-sm font-semibold">{tpl.name}</span>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
-                    tpl.isPremium
-                      ? "bg-accent text-accent-foreground"
-                      : "bg-primary/10 text-primary",
-                  )}
-                >
-                  {tpl.isPremium ? t("templates.premium") : t("templates.free")}
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold shadow-sm">
+                  <span aria-hidden>{cat?.emoji}</span>
+                  {cat ? t(cat.labelKey) : tpl.name}
                 </span>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <div className="mt-10 text-center">
           <Button asChild variant="outline" size="lg">

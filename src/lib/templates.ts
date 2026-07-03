@@ -44,7 +44,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "classico",
         name: "Clássico Champagne",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #fbf7f0, #f3e9d2)",
           textColor: "#5a4a2f",
@@ -86,7 +86,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "balloons",
         name: "Balões Coloridos",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #fff0f6, #e0f7ff)",
           textColor: "#c026a3",
@@ -128,7 +128,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "noir",
         name: "Black & Gold",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #1a0533, #2a1149)",
           textColor: "#f6f2fb",
@@ -170,7 +170,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "navy",
         name: "Azul Marinho",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #0b1f3a, #13315c)",
           textColor: "#eaf1ff",
@@ -212,7 +212,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "pastel",
         name: "Pastel Delicado",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #eef6ff, #ffeef5)",
           textColor: "#5b6b86",
@@ -254,7 +254,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "bandeirinhas",
         name: "Bandeirinhas",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #fff3d6, #ffe0b0)",
           textColor: "#9c2a1a",
@@ -296,7 +296,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "abobora",
         name: "Abóbora & Sombras",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #160a22, #3a1108)",
           textColor: "#ffd9a8",
@@ -338,7 +338,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "vermelho",
         name: "Vermelho Clássico",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #7a1220, #3d0a10)",
           textColor: "#fff4e0",
@@ -380,7 +380,7 @@ const CONFIGS: CategoryConfig[] = [
       {
         suffix: "azul",
         name: "Corporate Blue",
-        isPremium: false,
+        isPremium: true,
         style: {
           background: "linear-gradient(160deg, #0f2740, #1d3557)",
           textColor: "#eaf2fb",
