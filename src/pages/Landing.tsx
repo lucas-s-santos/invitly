@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -74,6 +74,61 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   )
 }
 
+const HERO_CYCLE = [
+  "wedding-classico",
+  "birthday_kids-confetti",
+  "halloween-abobora",
+  "christmas-verde",
+  "baby_shower-reveal",
+  "graduation-navy",
+]
+
+function HeroPhone() {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return
+    }
+    const id = setInterval(
+      () => setIndex((i) => (i + 1) % HERO_CYCLE.length),
+      3500,
+    )
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div className="flex justify-center">
+      <div className="relative w-[250px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[280px]">
+        <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-black/90 bg-black shadow-2xl">
+          <div className="relative aspect-[300/400]">
+            {HERO_CYCLE.map((id, i) => {
+              const template = getTemplate(id)
+              if (!template) return null
+              return (
+                <div
+                  key={id}
+                  aria-hidden={i !== index}
+                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                  style={{ opacity: i === index ? 1 : 0 }}
+                >
+                  <TemplatePreview
+                    template={template}
+                    className="h-full w-full"
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Hero({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
   const stats = [
@@ -81,8 +136,6 @@ function Hero({ ctaTo }: { ctaTo: string }) {
     { value: "9", label: t("stats.events") },
     { value: "48k+", label: t("stats.rsvps") },
   ]
-
-  const heroTemplate = getTemplate("wedding-classico")
 
   return (
     <section className="bg-brand-aurora relative overflow-hidden text-white">
@@ -128,16 +181,8 @@ function Hero({ ctaTo }: { ctaTo: string }) {
           </dl>
         </div>
 
-        {/* Mockup de celular */}
-        {heroTemplate ? (
-          <div className="flex justify-center">
-            <div className="relative w-[250px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[280px]">
-              <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-black/90 bg-black shadow-2xl">
-                <TemplatePreview template={heroTemplate} className="w-full" />
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {/* Mockup de celular — troca de template sozinho */}
+        <HeroPhone />
       </div>
     </section>
   )
