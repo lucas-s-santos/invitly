@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
 import { BrandMark } from "@/components/BrandMark"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
-import { InviteRenderer } from "@/components/invite/InviteRenderer"
 
 export default function Landing() {
   const { user } = useAuth()
@@ -75,13 +74,13 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   )
 }
 
-const HERO_CYCLE = [
-  "wedding-classico",
-  "birthday_kids-confetti",
-  "halloween-abobora",
-  "christmas-verde",
-  "baby_shower-reveal",
-  "graduation-navy",
+const HERO_CYCLE: { id: string; bg?: string }[] = [
+  { id: "wedding-classico", bg: "/casal.jpg" },
+  { id: "birthday_kids-confetti" },
+  { id: "halloween-abobora" },
+  { id: "christmas-verde" },
+  { id: "baby_shower-reveal" },
+  { id: "graduation-navy" },
 ]
 
 function HeroPhone() {
@@ -117,22 +116,37 @@ function HeroPhone() {
               maskRepeat: "no-repeat",
             }}
           >
-            {HERO_CYCLE.map((id, i) => {
-              const template = getTemplate(id)
+            {HERO_CYCLE.map((item, i) => {
+              const template = getTemplate(item.id)
               if (!template) return null
+              const fields = item.bg
+                ? { ...template.defaultData, background_image: item.bg }
+                : template.defaultData
               return (
                 <div
-                  key={id}
+                  key={item.id}
                   aria-hidden={i !== index}
                   className="absolute inset-0 transition-opacity duration-700 ease-in-out"
                   style={{ opacity: i === index ? 1 : 0 }}
                 >
-                  <InviteRenderer
-                    template={template}
-                    fields={template.defaultData}
-                    preview
-                    className="h-full w-full"
-                  />
+                  {/* posicionado na área da tela + escala proporcional (menos zoom) */}
+                  <div
+                    className="absolute"
+                    style={{
+                      left: "21%",
+                      top: "7%",
+                      width: "56%",
+                      height: "86%",
+                    }}
+                  >
+                    <TemplatePreview
+                      template={template}
+                      fields={fields}
+                      baseW={300}
+                      baseH={690}
+                      className="h-full w-full"
+                    />
+                  </div>
                 </div>
               )
             })}
