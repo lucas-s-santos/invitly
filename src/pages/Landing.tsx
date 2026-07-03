@@ -1,14 +1,6 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react"
 import {
   ArrowRight,
   Check,
@@ -82,49 +74,6 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   )
 }
 
-const FAN_CARDS = [
-  { id: "halloween-abobora", rotate: -22, x: -205, y: 40 },
-  { id: "christmas-vermelho", rotate: -13, x: -122, y: 2 },
-  { id: "baby_shower-pastel", rotate: -5, x: -50, y: -22 },
-  { id: "birthday_kids-confetti", rotate: 5, x: 50, y: -22 },
-  { id: "graduation-navy", rotate: 13, x: 122, y: 2 },
-  { id: "corporate-azul", rotate: 22, x: 205, y: 40 },
-]
-
-function FanCard({
-  progress,
-  id,
-  rotate,
-  x,
-  y,
-}: {
-  progress: MotionValue<number>
-  id: string
-  rotate: number
-  x: number
-  y: number
-}) {
-  const template = getTemplate(id)
-  const r = useTransform(progress, [0, 1], [0, rotate])
-  const tx = useTransform(progress, [0, 1], [0, x])
-  const ty = useTransform(progress, [0, 1], [0, y])
-  const opacity = useTransform(progress, [0, 0.12, 0.5], [0, 0.5, 1])
-  const scale = useTransform(progress, [0, 1], [0.82, 1])
-
-  if (!template) return null
-
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <motion.div
-        style={{ x: tx, y: ty, rotate: r, opacity, scale }}
-        className="w-[128px] overflow-hidden rounded-2xl border-4 border-white/85 shadow-2xl"
-      >
-        <TemplatePreview template={template} className="w-full" />
-      </motion.div>
-    </div>
-  )
-}
-
 function Hero({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
   const stats = [
@@ -135,86 +84,60 @@ function Hero({ ctaTo }: { ctaTo: string }) {
 
   const heroTemplate = getTemplate("wedding-classico")
 
-  const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  })
-  const reduce = useReducedMotion()
-  const openValue = useMotionValue(1)
-  const progress = reduce ? openValue : scrollYProgress
-
   return (
-    <section
-      ref={sectionRef}
-      className="bg-brand-aurora relative text-white lg:h-[180vh]"
-    >
-      <div className="px-4 py-16 sm:px-6 lg:sticky lg:top-0 lg:flex lg:h-svh lg:items-center lg:overflow-hidden lg:py-0">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2">
-          {/* Texto */}
-          <div className="text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur">
-              {t("hero.badge")}
-            </span>
-            <h1 className="mx-auto mt-6 max-w-xl font-display text-4xl leading-tight font-black sm:text-6xl lg:mx-0">
-              {t("hero.title")}
-            </h1>
-            <p className="mx-auto mt-5 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
-              {t("hero.subtitle")}
-            </p>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
-              <Button asChild size="xl" className="w-full sm:w-auto">
-                <Link to={ctaTo}>
-                  {t("hero.ctaPrimary")}
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="xl"
-                variant="outline"
-                className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white sm:w-auto"
-              >
-                <a href="#templates">{t("hero.ctaSecondary")}</a>
-              </Button>
-            </div>
-            <p className="mt-5 text-sm text-white/55">{t("hero.trust")}</p>
-
-            <dl className="mx-auto mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/15 pt-8 lg:mx-0">
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <dt className="font-display text-3xl font-bold text-brand-gold">
-                    {s.value}
-                  </dt>
-                  <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
-                </div>
-              ))}
-            </dl>
+    <section className="bg-brand-aurora relative overflow-hidden text-white">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-2">
+        {/* Texto */}
+        <div className="text-center lg:text-left">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur">
+            {t("hero.badge")}
+          </span>
+          <h1 className="mx-auto mt-6 max-w-xl font-display text-4xl leading-tight font-black sm:text-6xl lg:mx-0">
+            {t("hero.title")}
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
+            {t("hero.subtitle")}
+          </p>
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+            <Button asChild size="xl" className="w-full sm:w-auto">
+              <Link to={ctaTo}>
+                {t("hero.ctaPrimary")}
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="xl"
+              variant="outline"
+              className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white sm:w-auto"
+            >
+              <a href="#templates">{t("hero.ctaSecondary")}</a>
+            </Button>
           </div>
+          <p className="mt-5 text-sm text-white/55">{t("hero.trust")}</p>
 
-          {/* Showcase animado (desktop): leque de templates */}
-          {heroTemplate ? (
-            <div className="relative hidden h-[440px] lg:block">
-              {FAN_CARDS.map((c) => (
-                <FanCard key={c.id} progress={progress} {...c} />
-              ))}
-              <div className="absolute inset-0 z-20 flex items-center justify-center">
-                <div className="w-[236px] overflow-hidden rounded-[2.4rem] border-[10px] border-black bg-black shadow-2xl">
-                  <TemplatePreview template={heroTemplate} className="w-full" />
-                </div>
+          <dl className="mx-auto mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/15 pt-8 lg:mx-0">
+            {stats.map((s) => (
+              <div key={s.label}>
+                <dt className="font-display text-3xl font-bold text-brand-gold">
+                  {s.value}
+                </dt>
+                <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
               </div>
-            </div>
-          ) : null}
+            ))}
+          </dl>
+        </div>
 
-          {/* Celular estático (mobile) */}
-          {heroTemplate ? (
-            <div className="mx-auto w-[240px] [animation:invitly-float_5s_ease-in-out_infinite] lg:hidden">
-              <div className="overflow-hidden rounded-[2rem] border-[9px] border-black bg-black shadow-2xl">
+        {/* Mockup de celular */}
+        {heroTemplate ? (
+          <div className="flex justify-center">
+            <div className="relative w-[250px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[280px]">
+              <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-black/90 bg-black shadow-2xl">
                 <TemplatePreview template={heroTemplate} className="w-full" />
               </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </section>
   )

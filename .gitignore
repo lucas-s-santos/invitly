@@ -17,8 +17,8 @@ dist-ssr
 .env.*
 !.env.example
 
-# Assets de design brutos (pesados) — otimizar antes de usar
-/PNG MAGIC PRO*.png
+# Assets de design brutos (pesados, locais) — não versionar
+/_design/
 
 # Editor directories and files
 .vscode/*
