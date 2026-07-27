@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next"
 import { ArrowLeft, Crown, Loader2 } from "lucide-react"
 
 import { CATEGORIES } from "@/lib/categories"
-import { TEMPLATES } from "@/lib/templates"
+import { getTemplateDefaults, TEMPLATES } from "@/lib/templates"
 import { useCreateInvite } from "@/hooks/useInvites"
+import { useAuth } from "@/hooks/useAuth"
+import { saveGuestDraft } from "@/lib/guestDraft"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
@@ -13,6 +15,7 @@ import { TemplatePreview } from "@/components/invite/TemplatePreview"
 export default function TemplateSelect() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const createInvite = useCreateInvite()
   const [category, setCategory] = useState<string>("all")
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -23,14 +26,23 @@ export default function TemplateSelect() {
       : TEMPLATES.filter((tpl) => tpl.category === category)
 
   function handlePick(templateId: string, cat: string) {
-    setPendingId(templateId)
-    createInvite.mutate(
-      { templateId, category: cat },
-      {
-        onSuccess: (invite) => navigate(`/editor/${invite.id}`),
-        onError: () => setPendingId(null),
-      },
-    )
+    if (user) {
+      // Logado: cria o rascunho no banco
+      setPendingId(templateId)
+      createInvite.mutate(
+        { templateId, category: cat },
+        {
+          onSuccess: (invite) => navigate(`/editor/${invite.id}`),
+          onError: () => setPendingId(null),
+        },
+      )
+    } else {
+      // Convidado: salva o rascunho no navegador e vai pro editor sem login
+      const defaults = getTemplateDefaults(templateId)
+      if (!defaults) return
+      saveGuestDraft({ templateId, category: cat, fields: defaults })
+      navigate("/criar/editor")
+    }
   }
 
   return (
@@ -38,9 +50,9 @@ export default function TemplateSelect() {
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/dashboard">
+            <Link to={user ? "/dashboard" : "/"}>
               <ArrowLeft className="size-4" />
-              {t("nav.dashboard")}
+              {user ? t("nav.dashboard") : "Início"}
             </Link>
           </Button>
         </div>

@@ -89,9 +89,12 @@ export function useCreateInvite() {
     mutationFn: async ({
       templateId,
       category,
+      fields,
     }: {
       templateId: string
       category: string
+      /** campos já editados (ex: rascunho de convidado); senão usa os padrões */
+      fields?: InviteFields
     }): Promise<Invite> => {
       const { data: userData } = await supabase.auth.getUser()
       const user = userData.user
@@ -100,15 +103,18 @@ export function useCreateInvite() {
       const defaults = getTemplateDefaults(templateId)
       if (!defaults) throw new Error("Template inválido.")
 
+      const content = fields ?? defaults
+      const title = content.title?.trim() || defaults.title
+
       const { data, error } = await supabase
         .from("invites")
         .insert({
           user_id: user.id,
-          slug: buildInviteSlug(defaults.title),
-          title: defaults.title,
+          slug: buildInviteSlug(title),
+          title,
           category,
           template_id: templateId,
-          data: defaults,
+          data: content,
         })
         .select()
         .single()

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
@@ -20,9 +20,20 @@ import {
 
 import { toast } from "sonner"
 
-import { useInvite, useUpdateInvite } from "@/hooks/useInvites"
+import {
+  useCreateInvite,
+  useInvite,
+  useUpdateInvite,
+} from "@/hooks/useInvites"
+import { useAuth } from "@/hooks/useAuth"
 import { getTemplate } from "@/lib/templates"
 import { uploadInviteImage } from "@/lib/storage"
+import {
+  clearGuestDraft,
+  loadGuestDraft,
+  saveGuestDraft,
+  setPublishIntent,
+} from "@/lib/guestDraft"
 import { BACKGROUND_PATTERNS, type BackgroundPattern } from "@/lib/backgrounds"
 import { cn } from "@/lib/utils"
 import type { InviteFields } from "@/types"
@@ -38,9 +49,18 @@ type SaveStatus = "idle" | "saving" | "saved"
 
 export default function Editor() {
   const { id } = useParams()
+  const isGuest = !id // rota /criar/editor (sem :id) = modo convidado
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
   const { data: invite, isLoading, isError } = useInvite(id)
   const update = useUpdateInvite()
-  const navigate = useNavigate()
+  const createInvite = useCreateInvite()
+
+  const guestDraft = useMemo(
+    () => (isGuest ? loadGuestDraft() : null),
+    [isGuest],
+  )
 
   const [fields, setFields] = useState<InviteFields | null>(null)
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile")
@@ -49,42 +69,78 @@ export default function Editor() {
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [publishing, setPublishing] = useState(false)
   const dirtyRef = useRef(false)
   const initRef = useRef(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // Inicializa o formulário quando o convite carrega
+  // Inicializa o formulário (do banco, ou do rascunho local se convidado)
   useEffect(() => {
-    if (invite && !initRef.current) {
+    if (initRef.current) return
+    if (isGuest) {
+      if (guestDraft) {
+        setFields(guestDraft.fields)
+        initRef.current = true
+      }
+    } else if (invite) {
       setFields(invite.data as InviteFields)
       initRef.current = true
     }
-  }, [invite])
+  }, [invite, isGuest, guestDraft])
 
-  // Auto-save com debounce (1.2s após a última edição)
+  // Auto-save com debounce (1.2s) — banco ou localStorage
   useEffect(() => {
-    if (!fields || !id || !dirtyRef.current) return
+    if (!fields || !dirtyRef.current) return
     setSaveStatus("saving")
     const timeout = setTimeout(() => {
-      update.mutate(
-        { id, title: fields.title, fields },
-        {
-          onSuccess: () => {
-            dirtyRef.current = false
-            setSaveStatus("saved")
+      if (isGuest) {
+        if (guestDraft) {
+          saveGuestDraft({
+            templateId: guestDraft.templateId,
+            category: guestDraft.category,
+            fields,
+          })
+        }
+        dirtyRef.current = false
+        setSaveStatus("saved")
+      } else if (id) {
+        update.mutate(
+          { id, title: fields.title, fields },
+          {
+            onSuccess: () => {
+              dirtyRef.current = false
+              setSaveStatus("saved")
+            },
           },
-        },
-      )
+        )
+      }
     }, 1200)
     return () => clearTimeout(timeout)
-    // update é estável (referência do mutation); não incluir para evitar loop
+    // update/createInvite são estáveis; não incluir para evitar loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fields, id])
+  }, [fields, id, isGuest])
 
-  const template = invite ? getTemplate(invite.template_id) : undefined
+  const template = isGuest
+    ? guestDraft
+      ? getTemplate(guestDraft.templateId)
+      : undefined
+    : invite
+      ? getTemplate(invite.template_id)
+      : undefined
 
-  if (isLoading) return <FullScreenLoader />
-  if (isError || !invite) {
+  if (publishing) return <FullScreenLoader />
+  if (!isGuest && isLoading) return <FullScreenLoader />
+  if (isGuest && !guestDraft) {
+    return (
+      <PagePlaceholder
+        title="Nenhum rascunho por aqui"
+        description="Comece escolhendo um template para criar seu convite."
+        backTo="/editor/novo"
+        backLabel="Escolher template"
+      />
+    )
+  }
+  if (!isGuest && (isError || !invite)) {
     return (
       <PagePlaceholder
         title="Convite não encontrado"
@@ -96,8 +152,11 @@ export default function Editor() {
   }
   if (!template || !fields) return <FullScreenLoader />
 
-  const isPublished = invite.status === "published"
-  const publicUrl = `${import.meta.env.VITE_APP_URL || window.location.origin}/convite/${invite.slug}`
+  const isPublished = !isGuest && invite?.status === "published"
+  const publicUrl =
+    !isGuest && invite
+      ? `${import.meta.env.VITE_APP_URL || window.location.origin}/convite/${invite.slug}`
+      : ""
 
   function set<K extends keyof InviteFields>(key: K, value: InviteFields[K]) {
     dirtyRef.current = true
@@ -153,7 +212,7 @@ export default function Editor() {
   }
 
   function handlePublish() {
-    if (!invite || !fields) return
+    if (!fields) return
     const missing: string[] = []
     if (!fields.title.trim()) missing.push("título")
     if (!fields.event_date) missing.push("data do evento")
@@ -161,6 +220,46 @@ export default function Editor() {
       toast.error(`Preencha ${missing.join(" e ")} antes de publicar.`)
       return
     }
+
+    if (isGuest) {
+      if (!guestDraft) return
+      // salva o rascunho atual antes de seguir
+      saveGuestDraft({
+        templateId: guestDraft.templateId,
+        category: guestDraft.category,
+        fields,
+      })
+      if (user) {
+        // já logado: cria o convite e vai pro checkout
+        setPublishing(true)
+        createInvite.mutate(
+          {
+            templateId: guestDraft.templateId,
+            category: guestDraft.category,
+            fields,
+          },
+          {
+            onSuccess: (inv) => {
+              clearGuestDraft()
+              navigate(`/checkout/${inv.id}`)
+            },
+            onError: () => {
+              setPublishing(false)
+              toast.error("Não foi possível salvar. Tente de novo.")
+            },
+          },
+        )
+      } else {
+        // pede cadastro; volta pra cá com a intenção de publicar
+        setPublishIntent()
+        navigate("/login", {
+          state: { from: "/criar/editor", intent: "publish" },
+        })
+      }
+      return
+    }
+
+    if (!invite) return
     navigate(`/checkout/${invite.id}`)
   }
 
@@ -170,7 +269,7 @@ export default function Editor() {
       <header className="sticky top-0 z-30 border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/dashboard">
+            <Link to={isGuest ? "/editor/novo" : "/dashboard"}>
               <ArrowLeft className="size-4" />
               <span className="hidden sm:inline">{template.name}</span>
             </Link>
@@ -211,6 +310,18 @@ export default function Editor() {
       <div className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_1fr]">
         {/* Painel de propriedades */}
         <div className="space-y-5">
+          {isGuest ? (
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+              <p className="font-semibold text-primary">
+                ✨ Criando sem cadastro
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Personalize à vontade — seu rascunho fica salvo neste navegador.
+                Você só cria a conta na hora de <strong>publicar</strong>.
+              </p>
+            </div>
+          ) : null}
+
           {isPublished ? (
             <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm">
               <p className="font-semibold text-emerald-900">
@@ -232,7 +343,7 @@ export default function Editor() {
                   {copied ? "Copiado!" : "Copiar link"}
                 </Button>
                 <Button asChild size="sm" className="flex-1">
-                  <Link to={`/convite/${invite.slug}/lista`}>
+                  <Link to={`/convite/${invite?.slug}/lista`}>
                     <Users className="size-4" />
                     Confirmados
                   </Link>
@@ -326,7 +437,12 @@ export default function Editor() {
           {/* Foto de fundo */}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">Foto de fundo</p>
-            {fields.background_image ? (
+            {isGuest ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                📷 O upload de foto libera quando você criar sua conta (na hora
+                de publicar). Por enquanto, capriche nos padrões e cores acima!
+              </p>
+            ) : fields.background_image ? (
               <div className="mt-3 space-y-2">
                 <img
                   src={fields.background_image}
@@ -372,20 +488,24 @@ export default function Editor() {
                 Enviar foto
               </Button>
             )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => void handleImageFile(e.target.files?.[0])}
-            />
-            {uploadError ? (
-              <p className="mt-2 text-xs text-destructive">{uploadError}</p>
+            {!isGuest ? (
+              <>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => void handleImageFile(e.target.files?.[0])}
+                />
+                {uploadError ? (
+                  <p className="mt-2 text-xs text-destructive">{uploadError}</p>
+                ) : null}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  JPG ou PNG até 5 MB. Vira o fundo do convite (com leve
+                  escurecimento para o texto ficar legível).
+                </p>
+              </>
             ) : null}
-            <p className="mt-2 text-xs text-muted-foreground">
-              JPG ou PNG até 5 MB. Vira o fundo do convite (com leve
-              escurecimento para o texto ficar legível).
-            </p>
           </div>
 
           {/* Cores */}

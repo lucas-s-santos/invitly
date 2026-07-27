@@ -10,7 +10,6 @@ import {
   Sparkles,
 } from "lucide-react"
 
-import { useAuth } from "@/hooks/useAuth"
 import { getTemplate, TEMPLATES } from "@/lib/templates"
 import { CATEGORIES } from "@/lib/categories"
 import { cn } from "@/lib/utils"
@@ -21,8 +20,8 @@ import { BrandMark } from "@/components/BrandMark"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
 export default function Landing() {
-  const { user } = useAuth()
-  const ctaTo = user ? "/dashboard" : "/login"
+  // Criar sem login: o CTA leva direto pra escolha de template (público)
+  const ctaTo = "/editor/novo"
 
   return (
     <div className="flex min-h-svh flex-col">

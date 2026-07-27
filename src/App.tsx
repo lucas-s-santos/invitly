@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { FullScreenLoader } from "@/components/FullScreenLoader"
+import { GuestPublishResumer } from "@/components/GuestPublishResumer"
 import Landing from "@/pages/Landing"
 import Login from "@/pages/Login"
 
@@ -21,8 +22,10 @@ const NotFound = lazy(() => import("@/pages/NotFound"))
 
 export default function App() {
   return (
-    <Suspense fallback={<FullScreenLoader />}>
-      <Routes>
+    <>
+      <GuestPublishResumer />
+      <Suspense fallback={<FullScreenLoader />}>
+        <Routes>
         {/* Público */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -30,6 +33,9 @@ export default function App() {
         <Route path="/convite/:slug/rsvp" element={<Rsvp />} />
         <Route path="/privacidade" element={<Privacy />} />
         <Route path="/termos" element={<Terms />} />
+        {/* Criar sem login: seleção de template + editor de convidado */}
+        <Route path="/editor/novo" element={<TemplateSelect />} />
+        <Route path="/criar/editor" element={<Editor />} />
 
         {/* Autenticado */}
         <Route
@@ -37,14 +43,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/editor/novo"
-          element={
-            <ProtectedRoute>
-              <TemplateSelect />
             </ProtectedRoute>
           }
         />
@@ -83,6 +81,7 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </Suspense>
+      </Suspense>
+    </>
   )
 }

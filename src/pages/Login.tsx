@@ -29,9 +29,14 @@ export default function Login() {
   const { user, signInWithPassword, signUp, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? "/dashboard"
+  const navState = location.state as {
+    from?: string
+    intent?: string
+  } | null
+  const from = navState?.from ?? "/dashboard"
+  const publishIntent = navState?.intent === "publish"
 
-  const [mode, setMode] = useState<Mode>("login")
+  const [mode, setMode] = useState<Mode>(publishIntent ? "signup" : "login")
   const [serverError, setServerError] = useState<string | null>(null)
   const [signupDone, setSignupDone] = useState(false)
 
@@ -103,6 +108,12 @@ export default function Login() {
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
+          {publishIntent ? (
+            <div className="mb-5 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
+              ✨ Falta pouco! Crie sua conta para <strong>publicar</strong> o
+              convite que você acabou de montar.
+            </div>
+          ) : null}
           <h1 className="font-display text-3xl font-bold">
             {isLogin ? t("auth.loginTitle") : t("auth.signupTitle")}
           </h1>
