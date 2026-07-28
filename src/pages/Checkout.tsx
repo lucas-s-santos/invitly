@@ -11,6 +11,8 @@ import {
 import { toast } from "sonner"
 
 import { useInvite, usePublishInvite } from "@/hooks/useInvites"
+import { useAuth } from "@/hooks/useAuth"
+import { isAdminEmail } from "@/lib/admin"
 import { getTemplate } from "@/lib/templates"
 import { formatLongDate } from "@/lib/date"
 import type { InviteFields } from "@/types"
@@ -30,9 +32,11 @@ const BENEFITS = [
 
 export default function Checkout() {
   const { id } = useParams()
+  const { user } = useAuth()
   const { data: invite, isLoading } = useInvite(id)
   const publish = usePublishInvite()
   const [redirecting, setRedirecting] = useState(false)
+  const isAdmin = isAdminEmail(user?.email)
 
   const kiwifyUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL
   const price = import.meta.env.VITE_KIWIFY_PRICE || "R$ 12,90"
@@ -136,6 +140,37 @@ export default function Checkout() {
                   <span className="text-sm text-muted-foreground">Total</span>
                   <span className="font-display text-2xl font-bold">{price}</span>
                 </div>
+
+                {isAdmin ? (
+                  <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                    <p className="text-xs font-medium text-primary">
+                      👑 Conta administradora — você pode publicar sem pagar.
+                    </p>
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      disabled={publish.isPending}
+                      onClick={() =>
+                        publish.mutate(invite.id, {
+                          onSuccess: () =>
+                            toast.success("Publicado como admin! 🎉"),
+                          onError: () =>
+                            toast.error("Não foi possível publicar."),
+                        })
+                      }
+                    >
+                      {publish.isPending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="size-4" />
+                      )}
+                      Publicar grátis (admin)
+                    </Button>
+                    <p className="text-center text-[11px] text-muted-foreground">
+                      ou teste o fluxo de pagamento abaixo
+                    </p>
+                  </div>
+                ) : null}
 
                 {configured ? (
                   <Button
