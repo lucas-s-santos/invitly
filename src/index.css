@@ -188,7 +188,11 @@
   }
 }
 .invitly-marquee {
-  animation: invitly-marquee var(--duration, 32s) linear infinite;
+  animation-name: invitly-marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 32s;
+  will-change: transform;
 }
 .invitly-marquee:hover {
   animation-play-state: paused;
@@ -198,9 +202,6 @@
   [style*="invitly-float"],
   [style*="invitly-flutter"] {
     animation: none !important;
-  }
-  .invitly-marquee {
-    animation: none;
   }
 }
 

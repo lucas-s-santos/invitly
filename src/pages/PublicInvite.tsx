@@ -117,18 +117,40 @@ export default function PublicInvite() {
             template={template}
             fields={fields}
             animate
-            className={`min-h-svh ${
-              gallery.length > 0 && fields.music_url
-                ? "pb-80"
-                : gallery.length > 0 || fields.music_url
-                  ? "pb-72"
-                  : "pb-56"
-            }`}
+            className="min-h-svh pb-52"
           />
           {opened ? (
             <InviteEffects template={template} replayKey={replay} />
           ) : null}
         </>
+      ) : null}
+
+      {/* Rodapé (abaixo de tudo): fotos rolando + player. Rola pra ver. */}
+      {opened && (gallery.length > 0 || fields.music_url) ? (
+        <footer
+          className="relative z-10 flex flex-col items-center gap-6 px-4 pb-52 pt-14"
+          style={{
+            background:
+              fields.background_color ||
+              template?.style.background ||
+              "#1a0533",
+          }}
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
+            {gallery.length > 0 ? "Momentos" : "Trilha sonora"}
+          </p>
+          {gallery.length > 0 ? <GalleryCarousel images={gallery} /> : null}
+          {fields.music_url ? (
+            <MusicPlayer
+              active={opened}
+              url={fields.music_url}
+              title={fields.music_title}
+              artist={fields.music_artist}
+              cover={fields.music_cover}
+              accent={accent}
+            />
+          ) : null}
+        </footer>
       ) : null}
 
       {/* Tela de abertura (cortina) */}
@@ -142,23 +164,8 @@ export default function PublicInvite() {
         />
       ) : null}
 
-      {/* Base: fotos rolando + player + ações (tudo abaixo do convite) */}
-      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-3 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-4 pb-6 pt-12">
-        {opened && gallery.length > 0 ? (
-          <GalleryCarousel images={gallery} />
-        ) : null}
-
-        {opened && fields.music_url ? (
-          <MusicPlayer
-            active={opened}
-            url={fields.music_url}
-            title={fields.music_title}
-            artist={fields.music_artist}
-            cover={fields.music_cover}
-            accent={accent}
-          />
-        ) : null}
-
+      {/* Barra de ações flutuante */}
+      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/50 to-transparent px-4 pb-6 pt-10">
         <div className="flex w-full max-w-sm flex-col gap-2">
           <Button
             size="lg"
