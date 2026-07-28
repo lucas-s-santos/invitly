@@ -67,11 +67,17 @@ export function InviteRenderer({
     >
       {bgImage ? (
         <>
+          {/* No desktop: cópia borrada preenche as laterais (foto aparece inteira) */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 hidden scale-110 bg-cover bg-center blur-2xl lg:block"
+            style={{ backgroundImage: `url("${bgImage}")` }}
+          />
           <img
             src={bgImage}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover lg:object-contain"
             style={{
               objectPosition: fields.background_position || "50% 50%",
               transform: `scale(${fields.background_zoom ?? 1})`,

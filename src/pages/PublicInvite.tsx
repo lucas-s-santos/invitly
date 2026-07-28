@@ -131,9 +131,7 @@ export default function PublicInvite() {
           className="relative z-10 flex flex-col items-center gap-6 px-4 pb-52 pt-14"
           style={{
             background:
-              fields.background_color ||
-              template?.style.background ||
-              "#1a0533",
+              "linear-gradient(to bottom, #0b0b12, #050509)",
           }}
         >
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">

@@ -25,7 +25,7 @@ export function GalleryCarousel({ images }: { images: string[] }) {
             alt=""
             aria-hidden
             loading="lazy"
-            className="size-20 shrink-0 rounded-2xl object-cover shadow-lg ring-1 ring-white/25"
+            className="h-32 w-auto shrink-0 rounded-2xl object-contain shadow-lg ring-1 ring-white/15"
           />
         ))}
       </div>
