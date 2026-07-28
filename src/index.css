@@ -178,10 +178,29 @@
   }
 }
 
+/* Carrossel de fotos que rola sozinho (marquee contínuo) */
+@keyframes invitly-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.invitly-marquee {
+  animation: invitly-marquee var(--duration, 32s) linear infinite;
+}
+.invitly-marquee:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [style*="invitly-float"],
   [style*="invitly-flutter"] {
     animation: none !important;
+  }
+  .invitly-marquee {
+    animation: none;
   }
 }
 

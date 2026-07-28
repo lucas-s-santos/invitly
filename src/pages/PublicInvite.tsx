@@ -8,7 +8,6 @@ import {
   Download,
   Gift,
   Heart,
-  Image as ImageIcon,
   MapPin,
   PartyPopper,
   Share2,
@@ -29,6 +28,7 @@ import { InviteRenderer } from "@/components/invite/InviteRenderer"
 import { InviteEffects } from "@/components/invite/effects/InviteEffects"
 import { InviteOpening } from "@/components/invite/effects/InviteOpening"
 import { MusicPlayer } from "@/components/invite/MusicPlayer"
+import { GalleryCarousel } from "@/components/invite/GalleryCarousel"
 import { RsvpForm } from "@/components/invite/RsvpForm"
 
 export default function PublicInvite() {
@@ -38,7 +38,6 @@ export default function PublicInvite() {
   const [shareOpen, setShareOpen] = useState(false)
   const [agendaOpen, setAgendaOpen] = useState(false)
   const [giftOpen, setGiftOpen] = useState(false)
-  const [galleryOpen, setGalleryOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [pixCopied, setPixCopied] = useState(false)
   const [replay, setReplay] = useState(0)
@@ -118,7 +117,13 @@ export default function PublicInvite() {
             template={template}
             fields={fields}
             animate
-            className="min-h-svh pb-56"
+            className={`min-h-svh ${
+              gallery.length > 0 && fields.music_url
+                ? "pb-80"
+                : gallery.length > 0 || fields.music_url
+                  ? "pb-72"
+                  : "pb-56"
+            }`}
           />
           {opened ? (
             <InviteEffects template={template} replayKey={replay} />
@@ -137,20 +142,23 @@ export default function PublicInvite() {
         />
       ) : null}
 
-      {/* Player de música estilo Spotify */}
-      {fields.music_url && opened ? (
-        <MusicPlayer
-          active={opened}
-          url={fields.music_url}
-          title={fields.music_title}
-          artist={fields.music_artist}
-          cover={fields.music_cover}
-          accent={accent}
-        />
-      ) : null}
+      {/* Base: fotos rolando + player + ações (tudo abaixo do convite) */}
+      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-3 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-4 pb-6 pt-12">
+        {opened && gallery.length > 0 ? (
+          <GalleryCarousel images={gallery} />
+        ) : null}
 
-      {/* Barra de ações flutuante */}
-      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/40 to-transparent px-4 pb-6 pt-10">
+        {opened && fields.music_url ? (
+          <MusicPlayer
+            active={opened}
+            url={fields.music_url}
+            title={fields.music_title}
+            artist={fields.music_artist}
+            cover={fields.music_cover}
+            accent={accent}
+          />
+        ) : null}
+
         <div className="flex w-full max-w-sm flex-col gap-2">
           <Button
             size="lg"
@@ -189,17 +197,6 @@ export default function PublicInvite() {
               >
                 <Gift className="size-4" />
                 Presentes
-              </Button>
-            ) : null}
-            {gallery.length > 0 ? (
-              <Button
-                size="lg"
-                variant="secondary"
-                className="shadow-lg"
-                onClick={() => setGalleryOpen(true)}
-              >
-                <ImageIcon className="size-4" />
-                Fotos
               </Button>
             ) : null}
             {mapsHref ? (
@@ -353,30 +350,6 @@ export default function PublicInvite() {
                 </a>
               </Button>
             ) : null}
-          </div>
-        </Modal>
-      ) : null}
-
-      {/* Modal Galeria de fotos */}
-      {galleryOpen ? (
-        <Modal title="Fotos" onClose={() => setGalleryOpen(false)}>
-          <div className="grid max-h-[70vh] grid-cols-2 gap-2 overflow-y-auto">
-            {gallery.map((url, i) => (
-              <a
-                key={url}
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                className="block"
-              >
-                <img
-                  src={url}
-                  alt={`Foto ${i + 1}`}
-                  loading="lazy"
-                  className="aspect-square w-full rounded-lg object-cover"
-                />
-              </a>
-            ))}
           </div>
         </Modal>
       ) : null}
