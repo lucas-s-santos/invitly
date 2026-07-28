@@ -151,11 +151,11 @@ export default function Checkout() {
                     )}
                     Pagar com Kiwify
                   </Button>
-                ) : (
+                ) : import.meta.env.DEV ? (
                   <div className="space-y-3">
                     <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-                      Pagamento ainda não configurado (falta o link da Kiwify).
-                      Use o botão abaixo para publicar em modo de teste.
+                      [DEV] Pagamento não configurado — botão de teste disponível
+                      apenas em desenvolvimento.
                     </div>
                     <Button
                       size="lg"
@@ -174,6 +174,11 @@ export default function Checkout() {
                       ) : null}
                       Publicar em modo de teste
                     </Button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                    Pagamento temporariamente indisponível. Tente novamente em
+                    instantes.
                   </div>
                 )}
 
