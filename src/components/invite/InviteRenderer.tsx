@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import type { InviteFields, Template } from "@/types"
 import { formatLongDate, parseEventDate } from "@/lib/date"
@@ -14,6 +14,8 @@ interface InviteRendererProps {
   /** modo miniatura: desativa o countdown ao vivo (evita timers em grades) */
   preview?: boolean
   className?: string
+  /** conteúdo extra renderizado abaixo da mensagem, no mesmo fundo (ex: fotos/música) */
+  children?: ReactNode
 }
 
 export function InviteRenderer({
@@ -22,6 +24,7 @@ export function InviteRenderer({
   animate = false,
   preview = false,
   className,
+  children,
 }: InviteRendererProps) {
   const style = template.style
   const accent = fields.primary_color || style.accentColor
@@ -67,17 +70,11 @@ export function InviteRenderer({
     >
       {bgImage ? (
         <>
-          {/* No desktop: cópia borrada preenche as laterais (foto aparece inteira) */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 hidden scale-110 bg-cover bg-center blur-2xl lg:block"
-            style={{ backgroundImage: `url("${bgImage}")` }}
-          />
           <img
             src={bgImage}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover lg:object-contain"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             style={{
               objectPosition: fields.background_position || "50% 50%",
               transform: `scale(${fields.background_zoom ?? 1})`,
@@ -186,6 +183,10 @@ export function InviteRenderer({
           </div>
         ) : null}
       </div>
+
+      {children ? (
+        <div className="relative z-[1] mt-9 w-full max-w-lg">{children}</div>
+      ) : null}
     </div>
   )
 }

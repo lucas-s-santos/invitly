@@ -118,37 +118,29 @@ export default function PublicInvite() {
             fields={fields}
             animate
             className="min-h-svh pb-52"
-          />
+          >
+            {opened && (gallery.length > 0 || fields.music_url) ? (
+              <div className="flex flex-col items-center gap-5">
+                {gallery.length > 0 ? (
+                  <GalleryCarousel images={gallery} />
+                ) : null}
+                {fields.music_url ? (
+                  <MusicPlayer
+                    active={opened}
+                    url={fields.music_url}
+                    title={fields.music_title}
+                    artist={fields.music_artist}
+                    cover={fields.music_cover}
+                    accent={accent}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </InviteRenderer>
           {opened ? (
             <InviteEffects template={template} replayKey={replay} />
           ) : null}
         </>
-      ) : null}
-
-      {/* Rodapé (abaixo de tudo): fotos rolando + player. Rola pra ver. */}
-      {opened && (gallery.length > 0 || fields.music_url) ? (
-        <footer
-          className="relative z-10 flex flex-col items-center gap-6 px-4 pb-52 pt-14"
-          style={{
-            background:
-              "linear-gradient(to bottom, #0b0b12, #050509)",
-          }}
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-            {gallery.length > 0 ? "Momentos" : "Trilha sonora"}
-          </p>
-          {gallery.length > 0 ? <GalleryCarousel images={gallery} /> : null}
-          {fields.music_url ? (
-            <MusicPlayer
-              active={opened}
-              url={fields.music_url}
-              title={fields.music_title}
-              artist={fields.music_artist}
-              cover={fields.music_cover}
-              accent={accent}
-            />
-          ) : null}
-        </footer>
       ) : null}
 
       {/* Tela de abertura (cortina) */}
