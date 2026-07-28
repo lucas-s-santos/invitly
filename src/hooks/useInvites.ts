@@ -108,14 +108,16 @@ export function useCreateInvite() {
       const content = fields ?? defaults
       const title = content.title?.trim() || defaults.title
 
-      // Foto embutida (rascunho de convidado): não guarda o base64 no banco —
-      // insere sem a imagem e depois sobe pro Storage, trocando pela URL pública.
-      const inlineImage = isDataUrl(content.background_image)
-        ? content.background_image
-        : null
-      const insertContent = inlineImage
-        ? { ...content, background_image: undefined }
-        : content
+      // Imagens embutidas (rascunho de convidado): não guarda base64 no banco —
+      // insere sem elas e depois sobe pro Storage, trocando pela URL pública.
+      const imageFields: (keyof InviteFields)[] = [
+        "background_image",
+        "music_cover",
+      ]
+      const inlineKeys = imageFields.filter((k) => isDataUrl(content[k] as string))
+
+      const insertContent = { ...content }
+      for (const k of inlineKeys) insertContent[k] = undefined as never
 
       const { data, error } = await supabase
         .from("invites")
@@ -131,20 +133,23 @@ export function useCreateInvite() {
         .single()
       if (error) throw error
 
-      if (inlineImage) {
-        try {
-          const file = await dataUrlToFile(inlineImage, "fundo.jpg")
-          const publicUrl = await uploadInviteImage(file, data.id)
-          const { data: updated, error: upErr } = await supabase
-            .from("invites")
-            .update({ data: { ...content, background_image: publicUrl } })
-            .eq("id", data.id)
-            .select()
-            .single()
-          if (!upErr && updated) return updated
-        } catch {
-          // se a foto falhar, o convite já existe (sem a foto) — segue o fluxo
+      if (inlineKeys.length > 0) {
+        const patched = { ...content }
+        for (const k of inlineKeys) {
+          try {
+            const file = await dataUrlToFile(content[k] as string, `${k}.jpg`)
+            patched[k] = (await uploadInviteImage(file, data.id)) as never
+          } catch {
+            patched[k] = undefined as never // se falhar, segue sem essa imagem
+          }
         }
+        const { data: updated, error: upErr } = await supabase
+          .from("invites")
+          .update({ data: patched })
+          .eq("id", data.id)
+          .select()
+          .single()
+        if (!upErr && updated) return updated
       }
 
       return data

@@ -72,13 +72,16 @@ export function InviteRenderer({
             alt=""
             aria-hidden
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            style={{
+              objectPosition: fields.background_position || "50% 50%",
+              transform: `scale(${fields.background_zoom ?? 1})`,
+            }}
           />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.6))",
+              backgroundColor: `rgba(0,0,0,${(fields.background_overlay ?? 45) / 100})`,
             }}
           />
         </>

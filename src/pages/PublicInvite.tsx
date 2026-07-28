@@ -10,11 +10,9 @@ import {
   Heart,
   Image as ImageIcon,
   MapPin,
-  Music,
   PartyPopper,
   Share2,
   Sparkles,
-  VolumeX,
   X,
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
@@ -30,6 +28,7 @@ import { FullScreenLoader } from "@/components/FullScreenLoader"
 import { InviteRenderer } from "@/components/invite/InviteRenderer"
 import { InviteEffects } from "@/components/invite/effects/InviteEffects"
 import { InviteOpening } from "@/components/invite/effects/InviteOpening"
+import { MusicPlayer } from "@/components/invite/MusicPlayer"
 import { RsvpForm } from "@/components/invite/RsvpForm"
 
 export default function PublicInvite() {
@@ -44,9 +43,7 @@ export default function PublicInvite() {
   const [pixCopied, setPixCopied] = useState(false)
   const [replay, setReplay] = useState(0)
   const [opened, setOpened] = useState(false)
-  const [musicOn, setMusicOn] = useState(false)
   const viewedRef = useRef(false)
-  const audioRef = useRef<HTMLAudioElement>(null)
 
   // Registra a visualização uma vez (anonimizado, via RPC security definer)
   useEffect(() => {
@@ -58,30 +55,6 @@ export default function PublicInvite() {
       p_device: device,
     })
   }, [invite])
-
-  // Toca a música ao abrir o convite (o gesto de abrir libera o autoplay)
-  useEffect(() => {
-    if (!opened) return
-    const el = audioRef.current
-    if (!el) return
-    el.volume = 0.6
-    el.play()
-      .then(() => setMusicOn(true))
-      .catch(() => setMusicOn(false))
-  }, [opened])
-
-  function toggleMusic() {
-    const el = audioRef.current
-    if (!el) return
-    if (el.paused) {
-      el.play()
-        .then(() => setMusicOn(true))
-        .catch(() => setMusicOn(false))
-    } else {
-      el.pause()
-      setMusicOn(false)
-    }
-  }
 
   if (isLoading) return <FullScreenLoader />
 
@@ -164,23 +137,16 @@ export default function PublicInvite() {
         />
       ) : null}
 
-      {/* Música de fundo */}
-      {fields.music_url ? (
-        <>
-          <audio ref={audioRef} src={fields.music_url} loop preload="auto" />
-          <button
-            type="button"
-            onClick={toggleMusic}
-            className="fixed right-4 top-4 z-30 flex size-11 items-center justify-center rounded-full bg-black/45 text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
-            aria-label={musicOn ? "Desligar música" : "Ligar música"}
-          >
-            {musicOn ? (
-              <Music className="size-5 animate-pulse" />
-            ) : (
-              <VolumeX className="size-5" />
-            )}
-          </button>
-        </>
+      {/* Player de música estilo Spotify */}
+      {fields.music_url && opened ? (
+        <MusicPlayer
+          active={opened}
+          url={fields.music_url}
+          title={fields.music_title}
+          artist={fields.music_artist}
+          cover={fields.music_cover}
+          accent={accent}
+        />
       ) : null}
 
       {/* Barra de ações flutuante */}

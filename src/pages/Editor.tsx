@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Monitor,
+  Music,
   Rocket,
   Smartphone,
   Trash2,
@@ -27,7 +28,7 @@ import {
 } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
 import { getTemplate } from "@/lib/templates"
-import { uploadInviteImage } from "@/lib/storage"
+import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
 import {
   clearGuestDraft,
@@ -45,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FullScreenLoader } from "@/components/FullScreenLoader"
 import { PagePlaceholder } from "@/components/PagePlaceholder"
 import { InviteRenderer } from "@/components/invite/InviteRenderer"
+import { PhotoAdjuster } from "@/components/invite/PhotoAdjuster"
 
 type SaveStatus = "idle" | "saving" | "saved"
 
@@ -75,6 +77,8 @@ export default function Editor() {
   const initRef = useRef(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
+  const coverRef = useRef<HTMLInputElement>(null)
+  const audioFileRef = useRef<HTMLInputElement>(null)
 
   // Inicializa o formulário (do banco, ou do rascunho local se convidado)
   useEffect(() => {
@@ -165,6 +169,11 @@ export default function Editor() {
     setFields((prev) => (prev ? { ...prev, [key]: value } : prev))
   }
 
+  function patch(p: Partial<InviteFields>) {
+    dirtyRef.current = true
+    setFields((prev) => (prev ? { ...prev, ...p } : prev))
+  }
+
   function applyPattern(p: BackgroundPattern) {
     dirtyRef.current = true
     setFields((prev) =>
@@ -228,6 +237,40 @@ export default function Editor() {
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ""
+    }
+  }
+
+  // Capa da música: convidado guarda comprimida (sobe ao publicar); logado sobe já.
+  async function handleCoverFile(file: File | undefined) {
+    if (!file) return
+    setUploading(true)
+    try {
+      if (isGuest) {
+        set("music_cover", await compressImageToDataUrl(file, 600))
+      } else if (id) {
+        set("music_cover", await uploadInviteImage(file, id))
+      }
+      toast.success("Capa da música atualizada!")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao enviar a capa.")
+    } finally {
+      setUploading(false)
+      if (coverRef.current) coverRef.current.value = ""
+    }
+  }
+
+  // Upload de mp3 (só logado — áudio é pesado demais p/ rascunho local).
+  async function handleAudioFile(file: File | undefined) {
+    if (!file || !id) return
+    setUploading(true)
+    try {
+      set("music_url", await uploadInviteAudio(file, id))
+      toast.success("Música enviada!")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao enviar o áudio.")
+    } finally {
+      setUploading(false)
+      if (audioFileRef.current) audioFileRef.current.value = ""
     }
   }
 
@@ -550,6 +593,16 @@ export default function Editor() {
                 ? "JPG ou PNG até 5 MB. Fica salva no rascunho e é enviada automaticamente quando você publicar."
                 : "JPG ou PNG até 5 MB. Vira o fundo do convite (com leve escurecimento para o texto ficar legível)."}
             </p>
+            {fields.background_image ? (
+              <PhotoAdjuster
+                image={fields.background_image}
+                position={fields.background_position || "50% 50%"}
+                zoom={fields.background_zoom ?? 1}
+                overlay={fields.background_overlay ?? 45}
+                accent={fields.primary_color ?? template.style.accentColor}
+                onChange={patch}
+              />
+            ) : null}
           </div>
 
           {/* Cores */}
@@ -620,19 +673,111 @@ export default function Editor() {
             />
           </div>
 
-          {/* Música de fundo */}
+          {/* Música de fundo (player estilo Spotify) */}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">🎵 Música de fundo</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Link direto de um áudio (mp3/m4a). Começa a tocar quando o
-              convidado abre o convite.
+              Toca ao abrir o convite, num player estilo Spotify (capa + play +
+              barra de progresso).
             </p>
-            <Input
-              className="mt-3"
-              placeholder="https://.../musica.mp3"
-              value={fields.music_url ?? ""}
-              onChange={(e) => set("music_url", e.target.value || undefined)}
-            />
+
+            <div className="mt-3 space-y-2">
+              <Input
+                placeholder="Link do áudio (mp3/m4a)"
+                value={fields.music_url ?? ""}
+                onChange={(e) => set("music_url", e.target.value || undefined)}
+              />
+              {!isGuest ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={uploading}
+                    onClick={() => audioFileRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Music className="size-4" />
+                    )}
+                    Enviar mp3
+                  </Button>
+                  <input
+                    ref={audioFileRef}
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    onChange={(e) => void handleAudioFile(e.target.files?.[0])}
+                  />
+                </>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Enviar o arquivo de música libera ao criar a conta — por ora,
+                  cole um link.
+                </p>
+              )}
+            </div>
+
+            {fields.music_url ? (
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center gap-3">
+                  {fields.music_cover ? (
+                    <img
+                      src={fields.music_cover}
+                      alt=""
+                      className="size-12 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                      <Music className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    disabled={uploading}
+                    onClick={() => coverRef.current?.click()}
+                  >
+                    <ImageIcon className="size-4" />
+                    {fields.music_cover ? "Trocar capa" : "Capa da música"}
+                  </Button>
+                  {fields.music_cover ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => set("music_cover", undefined)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  ) : null}
+                </div>
+                <input
+                  ref={coverRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => void handleCoverFile(e.target.files?.[0])}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Título da música"
+                    value={fields.music_title ?? ""}
+                    onChange={(e) =>
+                      set("music_title", e.target.value || undefined)
+                    }
+                  />
+                  <Input
+                    placeholder="Artista"
+                    value={fields.music_artist ?? ""}
+                    onChange={(e) =>
+                      set("music_artist", e.target.value || undefined)
+                    }
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Presentes / PIX */}

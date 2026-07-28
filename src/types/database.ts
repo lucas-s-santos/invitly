@@ -27,13 +27,26 @@ export type InviteFields = {
   /** força a cor do texto para contraste ("light" = claro, "dark" = escuro) */
   text_mode?: "light" | "dark"
 
+  // ── Ajustes da foto de fundo ──
+  /** Enquadramento (object-position), ex: "50% 30%". */
+  background_position?: string
+  /** Zoom da foto (1 = normal, até ~3). */
+  background_zoom?: number
+  /** Escurecimento sobre a foto (0–100), p/ legibilidade do texto. */
+  background_overlay?: number
+
   // ── Extras do convite (opcionais) ──
   /** Link do mapa (Google Maps/Waze). Se vazio, gera busca a partir de `location`. */
   maps_url?: string
   /** Galeria de fotos — URLs públicas no Storage. */
   gallery?: string[]
-  /** Música de fundo — link direto para um arquivo de áudio (mp3/m4a). */
+  /** Música de fundo — link direto (ou upload) de um arquivo de áudio. */
   music_url?: string
+  /** Metadados do player estilo Spotify. */
+  music_title?: string
+  music_artist?: string
+  /** Capa da música (URL/Storage). */
+  music_cover?: string
   /** Presentes/PIX */
   pix_key?: string
   pix_name?: string
