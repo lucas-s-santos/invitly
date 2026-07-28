@@ -73,6 +73,7 @@ export default function Editor() {
   const dirtyRef = useRef(false)
   const initRef = useRef(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
 
   // Inicializa o formulário (do banco, ou do rascunho local se convidado)
   useEffect(() => {
@@ -209,6 +210,34 @@ export default function Editor() {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ""
     }
+  }
+
+  async function handleGalleryFile(file: File | undefined) {
+    if (!file || !id) return
+    setUploading(true)
+    try {
+      const url = await uploadInviteImage(file, id)
+      dirtyRef.current = true
+      setFields((prev) =>
+        prev ? { ...prev, gallery: [...(prev.gallery ?? []), url] } : prev,
+      )
+      toast.success("Foto adicionada à galeria!")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha no upload."
+      toast.error(msg)
+    } finally {
+      setUploading(false)
+      if (galleryRef.current) galleryRef.current.value = ""
+    }
+  }
+
+  function removeGalleryImage(url: string) {
+    dirtyRef.current = true
+    setFields((prev) =>
+      prev
+        ? { ...prev, gallery: (prev.gallery ?? []).filter((u) => u !== url) }
+        : prev,
+    )
   }
 
   function handlePublish() {
@@ -559,6 +588,136 @@ export default function Editor() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Como chegar (mapa) */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">🗺️ Como chegar</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cole o link do local no Google Maps ou Waze. Se deixar vazio,
+              geramos a busca a partir do endereço acima.
+            </p>
+            <Input
+              className="mt-3"
+              placeholder="https://maps.google.com/..."
+              value={fields.maps_url ?? ""}
+              onChange={(e) => set("maps_url", e.target.value || undefined)}
+            />
+          </div>
+
+          {/* Música de fundo */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">🎵 Música de fundo</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Link direto de um áudio (mp3/m4a). Começa a tocar quando o
+              convidado abre o convite.
+            </p>
+            <Input
+              className="mt-3"
+              placeholder="https://.../musica.mp3"
+              value={fields.music_url ?? ""}
+              onChange={(e) => set("music_url", e.target.value || undefined)}
+            />
+          </div>
+
+          {/* Presentes / PIX */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">🎁 Presentes / PIX</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Deixe um recado e sua chave PIX. Geramos QR Code + “copia e cola”
+              no convite.
+            </p>
+            <div className="mt-3 space-y-3">
+              <Textarea
+                rows={2}
+                maxLength={200}
+                placeholder="Sua presença é o maior presente! Mas se quiser nos ajudar…"
+                value={fields.gift_message ?? ""}
+                onChange={(e) =>
+                  set("gift_message", e.target.value || undefined)
+                }
+              />
+              <Input
+                placeholder="Chave PIX (e-mail, telefone, CPF ou aleatória)"
+                value={fields.pix_key ?? ""}
+                onChange={(e) => set("pix_key", e.target.value || undefined)}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  placeholder="Nome do recebedor"
+                  value={fields.pix_name ?? ""}
+                  onChange={(e) => set("pix_name", e.target.value || undefined)}
+                />
+                <Input
+                  placeholder="Cidade"
+                  value={fields.pix_city ?? ""}
+                  onChange={(e) => set("pix_city", e.target.value || undefined)}
+                />
+              </div>
+              <Input
+                placeholder="Link de lista de presentes (opcional)"
+                value={fields.gift_url ?? ""}
+                onChange={(e) => set("gift_url", e.target.value || undefined)}
+              />
+            </div>
+          </div>
+
+          {/* Galeria de fotos */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">📸 Galeria de fotos</p>
+            {isGuest ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                📷 A galeria libera quando você criar sua conta (na hora de
+                publicar).
+              </p>
+            ) : (
+              <>
+                {fields.gallery && fields.gallery.length > 0 ? (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {fields.gallery.map((url) => (
+                      <div key={url} className="group relative aspect-square">
+                        <img
+                          src={url}
+                          alt=""
+                          className="h-full w-full rounded-lg object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(url)}
+                          className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                          aria-label="Remover foto"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  disabled={uploading}
+                  onClick={() => galleryRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ImageIcon className="size-4" />
+                  )}
+                  Adicionar foto
+                </Button>
+                <input
+                  ref={galleryRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => void handleGalleryFile(e.target.files?.[0])}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Aparecem num carrossel no convite. JPG ou PNG até 5 MB cada.
+                </p>
+              </>
+            )}
           </div>
         </div>
 

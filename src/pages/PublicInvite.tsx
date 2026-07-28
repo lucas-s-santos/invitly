@@ -6,10 +6,15 @@ import {
   Check,
   Copy,
   Download,
+  Gift,
   Heart,
+  Image as ImageIcon,
+  MapPin,
+  Music,
   PartyPopper,
   Share2,
   Sparkles,
+  VolumeX,
   X,
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
@@ -18,6 +23,7 @@ import { useInviteBySlug } from "@/hooks/useInvites"
 import { supabase } from "@/lib/supabase"
 import { getTemplate } from "@/lib/templates"
 import { buildGoogleCalendarUrl, downloadIcs } from "@/lib/calendar"
+import { buildPixPayload } from "@/lib/pix"
 import type { InviteFields } from "@/types"
 import { Button } from "@/components/ui/button"
 import { FullScreenLoader } from "@/components/FullScreenLoader"
@@ -32,10 +38,15 @@ export default function PublicInvite() {
   const [rsvpOpen, setRsvpOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [agendaOpen, setAgendaOpen] = useState(false)
+  const [giftOpen, setGiftOpen] = useState(false)
+  const [galleryOpen, setGalleryOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [pixCopied, setPixCopied] = useState(false)
   const [replay, setReplay] = useState(0)
   const [opened, setOpened] = useState(false)
+  const [musicOn, setMusicOn] = useState(false)
   const viewedRef = useRef(false)
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   // Registra a visualização uma vez (anonimizado, via RPC security definer)
   useEffect(() => {
@@ -47,6 +58,30 @@ export default function PublicInvite() {
       p_device: device,
     })
   }, [invite])
+
+  // Toca a música ao abrir o convite (o gesto de abrir libera o autoplay)
+  useEffect(() => {
+    if (!opened) return
+    const el = audioRef.current
+    if (!el) return
+    el.volume = 0.6
+    el.play()
+      .then(() => setMusicOn(true))
+      .catch(() => setMusicOn(false))
+  }, [opened])
+
+  function toggleMusic() {
+    const el = audioRef.current
+    if (!el) return
+    if (el.paused) {
+      el.play()
+        .then(() => setMusicOn(true))
+        .catch(() => setMusicOn(false))
+    } else {
+      el.pause()
+      setMusicOn(false)
+    }
+  }
 
   if (isLoading) return <FullScreenLoader />
 
@@ -74,10 +109,32 @@ export default function PublicInvite() {
   const waText = encodeURIComponent(`Você está convidado: ${fields.title}! ${shareUrl}`)
   const googleCalUrl = buildGoogleCalendarUrl(fields)
 
+  // Extras opcionais do convite
+  const mapsHref = fields.maps_url?.trim()
+    ? fields.maps_url.trim()
+    : fields.location?.trim()
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fields.location)}`
+      : null
+  const gallery = fields.gallery ?? []
+  const hasGifts = Boolean(fields.pix_key?.trim() || fields.gift_url?.trim())
+  const pixPayload = fields.pix_key?.trim()
+    ? buildPixPayload({
+        key: fields.pix_key.trim(),
+        name: fields.pix_name || fields.hosts || fields.title,
+        city: fields.pix_city,
+      })
+    : ""
+
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function copyPix() {
+    await navigator.clipboard.writeText(pixPayload)
+    setPixCopied(true)
+    setTimeout(() => setPixCopied(false), 2000)
   }
 
   return (
@@ -107,6 +164,25 @@ export default function PublicInvite() {
         />
       ) : null}
 
+      {/* Música de fundo */}
+      {fields.music_url ? (
+        <>
+          <audio ref={audioRef} src={fields.music_url} loop preload="auto" />
+          <button
+            type="button"
+            onClick={toggleMusic}
+            className="fixed right-4 top-4 z-30 flex size-11 items-center justify-center rounded-full bg-black/45 text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+            aria-label={musicOn ? "Desligar música" : "Ligar música"}
+          >
+            {musicOn ? (
+              <Music className="size-5 animate-pulse" />
+            ) : (
+              <VolumeX className="size-5" />
+            )}
+          </button>
+        </>
+      ) : null}
+
       {/* Barra de ações flutuante */}
       <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/40 to-transparent px-4 pb-6 pt-10">
         <div className="flex w-full max-w-sm flex-col gap-2">
@@ -119,11 +195,11 @@ export default function PublicInvite() {
             <Heart className="size-4" />
             Confirmar presença
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <Button
               size="lg"
               variant="secondary"
-              className="flex-1 shadow-lg"
+              className="shadow-lg"
               onClick={() => setAgendaOpen(true)}
             >
               <CalendarPlus className="size-4" />
@@ -132,12 +208,42 @@ export default function PublicInvite() {
             <Button
               size="lg"
               variant="secondary"
-              className="flex-1 shadow-lg"
+              className="shadow-lg"
               onClick={() => setShareOpen(true)}
             >
               <Share2 className="size-4" />
               Enviar
             </Button>
+            {hasGifts ? (
+              <Button
+                size="lg"
+                variant="secondary"
+                className="shadow-lg"
+                onClick={() => setGiftOpen(true)}
+              >
+                <Gift className="size-4" />
+                Presentes
+              </Button>
+            ) : null}
+            {gallery.length > 0 ? (
+              <Button
+                size="lg"
+                variant="secondary"
+                className="shadow-lg"
+                onClick={() => setGalleryOpen(true)}
+              >
+                <ImageIcon className="size-4" />
+                Fotos
+              </Button>
+            ) : null}
+            {mapsHref ? (
+              <Button asChild size="lg" variant="secondary" className="shadow-lg">
+                <a href={mapsHref} target="_blank" rel="noreferrer">
+                  <MapPin className="size-4" />
+                  Como chegar
+                </a>
+              </Button>
+            ) : null}
             <Button
               size="lg"
               variant="secondary"
@@ -223,6 +329,88 @@ export default function PublicInvite() {
             <p className="text-center text-xs text-muted-foreground">
               Salve a data no seu calendário e não esqueça do evento 🗓️
             </p>
+          </div>
+        </Modal>
+      ) : null}
+
+      {/* Modal Presentes / PIX */}
+      {giftOpen ? (
+        <Modal title="Presentes" onClose={() => setGiftOpen(false)}>
+          <div className="space-y-4">
+            {fields.gift_message ? (
+              <p className="text-center text-sm leading-relaxed text-muted-foreground">
+                {fields.gift_message}
+              </p>
+            ) : null}
+
+            {pixPayload ? (
+              <>
+                <div className="flex justify-center">
+                  <div className="rounded-xl border border-border bg-white p-3">
+                    <QRCodeSVG value={pixPayload} size={168} fgColor="#1a0533" />
+                  </div>
+                </div>
+                <p className="text-center text-xs text-muted-foreground">
+                  Escaneie no app do seu banco ou use o código abaixo
+                </p>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => void copyPix()}
+                >
+                  {pixCopied ? (
+                    <Check className="size-4" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                  {pixCopied ? "Código copiado!" : "Copiar código PIX"}
+                </Button>
+                {fields.pix_key ? (
+                  <p className="truncate text-center text-xs text-muted-foreground">
+                    Chave: {fields.pix_key}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+
+            {fields.gift_url ? (
+              <Button
+                asChild
+                size="lg"
+                className="w-full"
+                style={{ backgroundColor: accent }}
+              >
+                <a href={fields.gift_url} target="_blank" rel="noreferrer">
+                  <Gift className="size-4" />
+                  Ver lista de presentes
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        </Modal>
+      ) : null}
+
+      {/* Modal Galeria de fotos */}
+      {galleryOpen ? (
+        <Modal title="Fotos" onClose={() => setGalleryOpen(false)}>
+          <div className="grid max-h-[70vh] grid-cols-2 gap-2 overflow-y-auto">
+            {gallery.map((url, i) => (
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="block"
+              >
+                <img
+                  src={url}
+                  alt={`Foto ${i + 1}`}
+                  loading="lazy"
+                  className="aspect-square w-full rounded-lg object-cover"
+                />
+              </a>
+            ))}
           </div>
         </Modal>
       ) : null}

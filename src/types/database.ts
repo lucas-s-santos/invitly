@@ -26,6 +26,21 @@ export type InviteFields = {
   background_image?: string
   /** força a cor do texto para contraste ("light" = claro, "dark" = escuro) */
   text_mode?: "light" | "dark"
+
+  // ── Extras do convite (opcionais) ──
+  /** Link do mapa (Google Maps/Waze). Se vazio, gera busca a partir de `location`. */
+  maps_url?: string
+  /** Galeria de fotos — URLs públicas no Storage. */
+  gallery?: string[]
+  /** Música de fundo — link direto para um arquivo de áudio (mp3/m4a). */
+  music_url?: string
+  /** Presentes/PIX */
+  pix_key?: string
+  pix_name?: string
+  pix_city?: string
+  gift_message?: string
+  /** Link externo de lista de presentes (opcional). */
+  gift_url?: string
 }
 
 export type Invite = {
