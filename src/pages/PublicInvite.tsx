@@ -145,7 +145,7 @@ export default function PublicInvite() {
             template={template}
             fields={fields}
             animate
-            className="min-h-svh pb-28"
+            className="min-h-svh pb-56"
           />
           {opened ? (
             <InviteEffects template={template} replayKey={replay} />

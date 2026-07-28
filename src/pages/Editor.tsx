@@ -732,7 +732,11 @@ export default function Editor() {
             )}
           >
             <div className="h-full w-full overflow-y-auto">
-              <InviteRenderer template={template} fields={fields} />
+              <InviteRenderer
+                template={template}
+                fields={fields}
+                className="min-h-full"
+              />
             </div>
           </div>
         </div>

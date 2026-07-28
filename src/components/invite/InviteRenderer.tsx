@@ -59,7 +59,7 @@ export function InviteRenderer({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-full w-full flex-col items-center justify-center overflow-hidden px-8 py-12 text-center",
+        "relative flex w-full flex-col items-center justify-center overflow-hidden px-8 py-12 text-center",
         className,
       )}
       style={{ background, color: textColor }}
