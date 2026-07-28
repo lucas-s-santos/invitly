@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/hooks/useAuth"
 import { getTemplate } from "@/lib/templates"
 import { uploadInviteImage } from "@/lib/storage"
+import { compressImageToDataUrl } from "@/lib/image"
 import {
   clearGuestDraft,
   loadGuestDraft,
@@ -204,6 +205,24 @@ export default function Editor() {
       toast.success("Foto de fundo atualizada!")
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Falha no upload."
+      setUploadError(msg)
+      toast.error(msg)
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ""
+    }
+  }
+
+  async function handleGuestImageFile(file: File | undefined) {
+    if (!file) return
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const dataUrl = await compressImageToDataUrl(file)
+      set("background_image", dataUrl)
+      toast.success("Foto de fundo adicionada!")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha ao carregar a foto."
       setUploadError(msg)
       toast.error(msg)
     } finally {
@@ -466,12 +485,7 @@ export default function Editor() {
           {/* Foto de fundo */}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">Foto de fundo</p>
-            {isGuest ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                📷 O upload de foto libera quando você criar sua conta (na hora
-                de publicar). Por enquanto, capriche nos padrões e cores acima!
-              </p>
-            ) : fields.background_image ? (
+            {fields.background_image ? (
               <div className="mt-3 space-y-2">
                 <img
                   src={fields.background_image}
@@ -517,24 +531,25 @@ export default function Editor() {
                 Enviar foto
               </Button>
             )}
-            {!isGuest ? (
-              <>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => void handleImageFile(e.target.files?.[0])}
-                />
-                {uploadError ? (
-                  <p className="mt-2 text-xs text-destructive">{uploadError}</p>
-                ) : null}
-                <p className="mt-2 text-xs text-muted-foreground">
-                  JPG ou PNG até 5 MB. Vira o fundo do convite (com leve
-                  escurecimento para o texto ficar legível).
-                </p>
-              </>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) =>
+                void (isGuest
+                  ? handleGuestImageFile(e.target.files?.[0])
+                  : handleImageFile(e.target.files?.[0]))
+              }
+            />
+            {uploadError ? (
+              <p className="mt-2 text-xs text-destructive">{uploadError}</p>
             ) : null}
+            <p className="mt-2 text-xs text-muted-foreground">
+              {isGuest
+                ? "JPG ou PNG até 5 MB. Fica salva no rascunho e é enviada automaticamente quando você publicar."
+                : "JPG ou PNG até 5 MB. Vira o fundo do convite (com leve escurecimento para o texto ficar legível)."}
+            </p>
           </div>
 
           {/* Cores */}

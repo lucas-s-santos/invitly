@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase"
 import { buildInviteSlug } from "@/lib/slug"
 import { getTemplateDefaults } from "@/lib/templates"
+import { uploadInviteImage } from "@/lib/storage"
+import { dataUrlToFile, isDataUrl } from "@/lib/image"
 import type { Invite, InviteFields } from "@/types"
 
 const inviteKeys = {
@@ -106,6 +108,15 @@ export function useCreateInvite() {
       const content = fields ?? defaults
       const title = content.title?.trim() || defaults.title
 
+      // Foto embutida (rascunho de convidado): não guarda o base64 no banco —
+      // insere sem a imagem e depois sobe pro Storage, trocando pela URL pública.
+      const inlineImage = isDataUrl(content.background_image)
+        ? content.background_image
+        : null
+      const insertContent = inlineImage
+        ? { ...content, background_image: undefined }
+        : content
+
       const { data, error } = await supabase
         .from("invites")
         .insert({
@@ -114,11 +125,28 @@ export function useCreateInvite() {
           title,
           category,
           template_id: templateId,
-          data: content,
+          data: insertContent,
         })
         .select()
         .single()
       if (error) throw error
+
+      if (inlineImage) {
+        try {
+          const file = await dataUrlToFile(inlineImage, "fundo.jpg")
+          const publicUrl = await uploadInviteImage(file, data.id)
+          const { data: updated, error: upErr } = await supabase
+            .from("invites")
+            .update({ data: { ...content, background_image: publicUrl } })
+            .eq("id", data.id)
+            .select()
+            .single()
+          if (!upErr && updated) return updated
+        } catch {
+          // se a foto falhar, o convite já existe (sem a foto) — segue o fluxo
+        }
+      }
+
       return data
     },
     onSuccess: () => {
