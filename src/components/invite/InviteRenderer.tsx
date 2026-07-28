@@ -59,7 +59,8 @@ export function InviteRenderer({
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center justify-center overflow-hidden px-8 py-12 text-center",
+        "relative flex w-full flex-col items-center justify-center overflow-hidden text-center",
+        preview ? "px-6 py-8" : "px-8 py-12",
         className,
       )}
       style={{ background, color: textColor }}
@@ -91,10 +92,13 @@ export function InviteRenderer({
       ) : null}
 
       <div
-        className="relative flex max-w-md flex-col items-center gap-5"
+        className={cn(
+          "relative flex w-full max-w-md flex-col items-center",
+          preview ? "gap-3" : "gap-5",
+        )}
         style={bgImage ? { textShadow: "0 1px 14px rgba(0,0,0,0.55)" } : undefined}
       >
-        {style.motif ? (
+        {style.motif && !preview ? (
           <div className={cn("text-4xl", anim)} style={delay(0)} aria-hidden>
             {style.motif}
           </div>
@@ -114,10 +118,12 @@ export function InviteRenderer({
 
         <h1
           className={cn(
-            "text-4xl leading-tight font-bold sm:text-5xl",
+            "leading-tight font-bold break-words hyphens-auto",
+            preview ? "text-3xl" : "text-4xl sm:text-5xl",
             anim,
             hasFlicker && "invitly-flicker",
           )}
+          lang="pt-BR"
           style={{ fontFamily: style.fontDisplay, ...delay(200) }}
         >
           {hasTypewriter ? <Typewriter text={fields.title} /> : fields.title}
@@ -150,7 +156,11 @@ export function InviteRenderer({
 
         {fields.message ? (
           <p
-            className={cn("text-base leading-relaxed italic opacity-90", anim)}
+            className={cn(
+              "leading-relaxed italic opacity-90",
+              preview ? "line-clamp-3 text-sm" : "text-base",
+              anim,
+            )}
             style={delay(450)}
           >
             {fields.message}
