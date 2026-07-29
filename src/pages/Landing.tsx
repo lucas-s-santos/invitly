@@ -5,9 +5,11 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Crown,
   Palette,
   Share2,
   Sparkles,
+  Star,
 } from "lucide-react"
 
 import { getTemplate, TEMPLATES } from "@/lib/templates"
@@ -30,6 +32,7 @@ export default function Landing() {
         <Hero ctaTo={ctaTo} />
         <HowItWorks />
         <FeaturedTemplates ctaTo={ctaTo} />
+        <Testimonials />
         <Pricing ctaTo={ctaTo} />
         <Faq />
         <FinalCta ctaTo={ctaTo} />
@@ -326,8 +329,8 @@ function FeaturedTemplates({ ctaTo }: { ctaTo: string }) {
 
 function Pricing({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
-  const price = import.meta.env.VITE_KIWIFY_PRICE || t("pricing.price")
-  const features = t("pricing.features", { returnObjects: true }) as string[]
+  const basicPrice = import.meta.env.VITE_KIWIFY_PRICE || "R$ 12,90"
+  const premiumPrice = import.meta.env.VITE_KIWIFY_PRICE_PREMIUM || "R$ 19,90"
 
   return (
     <section id="precos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -335,28 +338,156 @@ function Pricing({ ctaTo }: { ctaTo: string }) {
         title={t("pricing.title")}
         subtitle={t("pricing.subtitle")}
       />
-      <div className="mx-auto mt-12 max-w-md">
-        <div className="rounded-2xl border border-primary bg-card p-8 shadow-lg ring-1 ring-primary/20">
-          <div className="flex items-baseline justify-center gap-1">
-            <span className="font-display text-5xl font-black">{price}</span>
-            <span className="text-muted-foreground">
-              {t("pricing.perInvite")}
-            </span>
-          </div>
-          <ul className="mt-8 space-y-3 text-sm">
-            {features.map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-          <Button asChild size="xl" className="mt-8 w-full">
-            <Link to={ctaTo}>{t("pricing.cta")}</Link>
-          </Button>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            {t("pricing.note")}
-          </p>
+      <div className="mx-auto mt-14 grid max-w-3xl gap-6 sm:grid-cols-2">
+        <PriceCard
+          title="Básico"
+          price={basicPrice}
+          ctaTo={ctaTo}
+          features={[
+            "Convite animado completo",
+            "Galeria de fotos",
+            "Contagem, RSVP, QR e agenda",
+            "Mapa e compartilhamento",
+          ]}
+        />
+        <PriceCard
+          premium
+          badge="Mais completo"
+          title="Premium"
+          price={premiumPrice}
+          ctaTo={ctaTo}
+          features={[
+            "Tudo do Básico, e mais:",
+            "Lista de presentes + PIX",
+            "Música de fundo",
+            "Filtros e fontes exclusivas",
+          ]}
+        />
+      </div>
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        Pagamento único por convite · sem mensalidade
+      </p>
+    </section>
+  )
+}
+
+function PriceCard({
+  title,
+  price,
+  features,
+  ctaTo,
+  premium = false,
+  badge,
+}: {
+  title: string
+  price: string
+  features: string[]
+  ctaTo: string
+  premium?: boolean
+  badge?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "relative rounded-2xl border bg-card p-8",
+        premium
+          ? "border-primary shadow-lg ring-1 ring-primary/20"
+          : "border-border",
+      )}
+    >
+      {badge ? (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+          {badge}
+        </span>
+      ) : null}
+      <div className="flex items-center gap-2">
+        {premium ? <Crown className="size-5 text-amber-500" /> : null}
+        <span className="font-display text-xl font-bold">{title}</span>
+      </div>
+      <div className="mt-3 flex items-baseline gap-1">
+        <span className="font-display text-4xl font-black">{price}</span>
+        <span className="text-sm text-muted-foreground">/ convite</span>
+      </div>
+      <ul className="mt-6 space-y-3 text-sm">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2">
+            <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <Button
+        asChild
+        size="lg"
+        variant={premium ? "default" : "outline"}
+        className="mt-8 w-full"
+      >
+        <Link to={ctaTo}>Criar convite</Link>
+      </Button>
+    </div>
+  )
+}
+
+function Testimonials() {
+  const items = [
+    {
+      name: "Ana & Rafael",
+      event: "Casamento",
+      quote:
+        "Nossos convidados amaram! A música tocando ao abrir emocionou todo mundo — e ficou pronto rapidinho.",
+      color: "#ff6b9d",
+    },
+    {
+      name: "Juliana",
+      event: "Chá de bebê",
+      quote:
+        "Fiz em 10 minutos e ficou lindo. A lista de presentes com PIX salvou minha vida.",
+      color: "#7c5cff",
+    },
+    {
+      name: "Marcos",
+      event: "Aniversário de 40",
+      quote:
+        "Parece caro de tão profissional, mas foi baratinho. As confirmações chegaram organizadas sozinhas.",
+      color: "#22b8a6",
+    },
+  ]
+
+  return (
+    <section className="bg-secondary/40 py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <SectionHeading
+          title="Quem usa, ama 💜"
+          subtitle="Convites que fazem a festa começar antes da hora."
+        />
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {items.map((it) => (
+            <div
+              key={it.name}
+              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
+            >
+              <div className="flex gap-0.5 text-amber-400">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="size-4 fill-current" />
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-foreground/90">
+                “{it.quote}”
+              </p>
+              <div className="mt-5 flex items-center gap-3">
+                <span
+                  className="flex size-9 items-center justify-center rounded-full text-sm font-bold text-white"
+                  style={{ backgroundColor: it.color }}
+                >
+                  {it.name[0]}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">{it.name}</p>
+                  <p className="text-xs text-muted-foreground">{it.event}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
