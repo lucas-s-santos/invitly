@@ -4,6 +4,7 @@ export type {
   Invite,
   InviteData,
   InviteFields,
+  InvitePlan,
   InviteStatus,
   InviteView,
   Rsvp,

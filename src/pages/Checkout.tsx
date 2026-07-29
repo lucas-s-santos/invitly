@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import {
   ArrowLeft,
   Check,
+  Crown,
   ExternalLink,
   Loader2,
   Rocket,
@@ -10,24 +11,30 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { useInvite, usePublishInvite } from "@/hooks/useInvites"
+import { useInvite, usePublishInvite, useUpdateInvite } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdminEmail } from "@/lib/admin"
 import { getTemplate } from "@/lib/templates"
 import { formatLongDate } from "@/lib/date"
-import type { InviteFields } from "@/types"
+import type { InviteFields, InvitePlan } from "@/types"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FullScreenLoader } from "@/components/FullScreenLoader"
 import { PagePlaceholder } from "@/components/PagePlaceholder"
 import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
-const BENEFITS = [
-  "Página do convite publicada e compartilhável",
-  "Animações e contagem regressiva",
-  "Confirmações de presença (RSVP) ilimitadas",
-  "QR Code e adicionar à agenda",
-  "Lista de confirmados + analytics",
+const BASIC_FEATURES = [
+  "Convite animado completo",
+  "Galeria de fotos",
+  "Contagem, RSVP, QR e agenda",
+  "Mapa e compartilhamento",
+]
+const PREMIUM_FEATURES = [
+  "Tudo do Básico, mais:",
+  "Lista de presentes + PIX",
+  "Música de fundo",
+  "Filtros e fontes exclusivas",
 ]
 
 export default function Checkout() {
@@ -35,12 +42,20 @@ export default function Checkout() {
   const { user } = useAuth()
   const { data: invite, isLoading } = useInvite(id)
   const publish = usePublishInvite()
+  const update = useUpdateInvite()
   const [redirecting, setRedirecting] = useState(false)
+  const [plan, setPlan] = useState<InvitePlan>("basico")
   const isAdmin = isAdminEmail(user?.email)
 
-  const kiwifyUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL
-  const price = import.meta.env.VITE_KIWIFY_PRICE || "R$ 12,90"
-  const configured = Boolean(kiwifyUrl)
+  useEffect(() => {
+    const p = (invite?.data as InviteFields | undefined)?.plan
+    if (p) setPlan(p)
+  }, [invite])
+
+  const basicUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL
+  const premiumUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL_PREMIUM
+  const basicPrice = import.meta.env.VITE_KIWIFY_PRICE || "R$ 12,90"
+  const premiumPrice = import.meta.env.VITE_KIWIFY_PRICE_PREMIUM || "R$ 19,90"
 
   if (isLoading) return <FullScreenLoader />
   if (!invite) {
@@ -58,12 +73,35 @@ export default function Checkout() {
   const publicUrl = `${import.meta.env.VITE_APP_URL || window.location.origin}/convite/${invite.slug}`
   const isPublished = invite.status === "published"
 
-  function pay() {
-    if (!kiwifyUrl || !invite) return
+  const chosenUrl = plan === "premium" ? premiumUrl : basicUrl
+  const chosenPrice = plan === "premium" ? premiumPrice : basicPrice
+  const configured = Boolean(chosenUrl)
+
+  async function persistPlan() {
+    if (!invite) return
+    try {
+      await update.mutateAsync({ id: invite.id, fields: { ...fields, plan } })
+    } catch {
+      // se falhar o save do plano, segue mesmo assim
+    }
+  }
+
+  async function pay() {
+    if (!chosenUrl || !invite) return
     setRedirecting(true)
-    const sep = kiwifyUrl.includes("?") ? "&" : "?"
-    // sck = código de rastreio da Kiwify (volta no webhook p/ publicar o convite certo)
-    window.location.href = `${kiwifyUrl}${sep}sck=${invite.id}`
+    await persistPlan()
+    const sep = chosenUrl.includes("?") ? "&" : "?"
+    // sck = rastreio da Kiwify (volta no webhook p/ publicar o convite certo)
+    window.location.href = `${chosenUrl}${sep}sck=${invite.id}`
+  }
+
+  async function freePublish() {
+    if (!invite) return
+    await persistPlan()
+    publish.mutate(invite.id, {
+      onSuccess: () => toast.success("Publicado! 🎉"),
+      onError: () => toast.error("Não foi possível publicar."),
+    })
   }
 
   return (
@@ -82,12 +120,12 @@ export default function Checkout() {
       <main className="mx-auto grid max-w-4xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-[1fr_320px]">
         <div>
           <h1 className="font-display text-3xl font-bold">
-            {isPublished ? "Convite publicado 🎉" : "Publicar convite"}
+            {isPublished ? "Convite publicado 🎉" : "Escolha seu plano"}
           </h1>
           <p className="mt-2 text-muted-foreground">
             {isPublished
               ? "Seu convite já está no ar. Compartilhe o link com os convidados!"
-              : "Falta pouco! Publique para liberar o link e receber confirmações."}
+              : "Publique para liberar o link e receber confirmações."}
           </p>
 
           {isPublished ? (
@@ -105,14 +143,23 @@ export default function Checkout() {
               </CardContent>
             </Card>
           ) : (
-            <ul className="mt-6 space-y-2.5">
-              {BENEFITS.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                  {b}
-                </li>
-              ))}
-            </ul>
+            <div className="mt-6 space-y-3">
+              <PlanCard
+                active={plan === "basico"}
+                onClick={() => setPlan("basico")}
+                title="Básico"
+                price={basicPrice}
+                features={BASIC_FEATURES}
+              />
+              <PlanCard
+                active={plan === "premium"}
+                onClick={() => setPlan("premium")}
+                title="Premium"
+                price={premiumPrice}
+                features={PREMIUM_FEATURES}
+                premium
+              />
+            </div>
           )}
         </div>
 
@@ -137,38 +184,32 @@ export default function Checkout() {
             {!isPublished ? (
               <>
                 <div className="flex items-baseline justify-between border-t border-border pt-4">
-                  <span className="text-sm text-muted-foreground">Total</span>
-                  <span className="font-display text-2xl font-bold">{price}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Plano {plan === "premium" ? "Premium" : "Básico"}
+                  </span>
+                  <span className="font-display text-2xl font-bold">
+                    {chosenPrice}
+                  </span>
                 </div>
 
                 {isAdmin ? (
                   <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
                     <p className="text-xs font-medium text-primary">
-                      👑 Conta administradora — você pode publicar sem pagar.
+                      👑 Conta administradora — publica sem pagar.
                     </p>
                     <Button
                       size="lg"
                       className="w-full"
-                      disabled={publish.isPending}
-                      onClick={() =>
-                        publish.mutate(invite.id, {
-                          onSuccess: () =>
-                            toast.success("Publicado como admin! 🎉"),
-                          onError: () =>
-                            toast.error("Não foi possível publicar."),
-                        })
-                      }
+                      disabled={publish.isPending || update.isPending}
+                      onClick={() => void freePublish()}
                     >
-                      {publish.isPending ? (
+                      {publish.isPending || update.isPending ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <ShieldCheck className="size-4" />
                       )}
                       Publicar grátis (admin)
                     </Button>
-                    <p className="text-center text-[11px] text-muted-foreground">
-                      ou teste o fluxo de pagamento abaixo
-                    </p>
                   </div>
                 ) : null}
 
@@ -176,7 +217,7 @@ export default function Checkout() {
                   <Button
                     size="lg"
                     className="w-full"
-                    onClick={pay}
+                    onClick={() => void pay()}
                     disabled={redirecting}
                   >
                     {redirecting ? (
@@ -184,36 +225,29 @@ export default function Checkout() {
                     ) : (
                       <Rocket className="size-4" />
                     )}
-                    Pagar com Kiwify
+                    Pagar {chosenPrice}
                   </Button>
-                ) : import.meta.env.DEV ? (
-                  <div className="space-y-3">
-                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-                      [DEV] Pagamento não configurado — botão de teste disponível
-                      apenas em desenvolvimento.
-                    </div>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="w-full"
-                      disabled={publish.isPending}
-                      onClick={() =>
-                        publish.mutate(invite.id, {
-                          onSuccess: () => toast.success("Convite publicado! 🎉"),
-                          onError: () => toast.error("Não foi possível publicar."),
-                        })
-                      }
-                    >
-                      {publish.isPending ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : null}
-                      Publicar em modo de teste
-                    </Button>
+                ) : plan === "premium" ? (
+                  <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                    O plano Premium ainda está sendo configurado. Escolha o
+                    Básico ou tente em instantes.
                   </div>
+                ) : import.meta.env.DEV ? (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full"
+                    disabled={publish.isPending}
+                    onClick={() => void freePublish()}
+                  >
+                    {publish.isPending ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : null}
+                    [DEV] Publicar em modo de teste
+                  </Button>
                 ) : (
                   <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                    Pagamento temporariamente indisponível. Tente novamente em
-                    instantes.
+                    Pagamento temporariamente indisponível.
                   </div>
                 )}
 
@@ -227,5 +261,50 @@ export default function Checkout() {
         </Card>
       </main>
     </div>
+  )
+}
+
+function PlanCard({
+  active,
+  onClick,
+  title,
+  price,
+  features,
+  premium = false,
+}: {
+  active: boolean
+  onClick: () => void
+  title: string
+  price: string
+  features: string[]
+  premium?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "w-full rounded-xl border-2 p-4 text-left transition-colors",
+        active
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/40",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-1.5 font-display text-lg font-bold">
+          {premium ? <Crown className="size-4 text-amber-500" /> : null}
+          {title}
+        </span>
+        <span className="font-display text-xl font-bold">{price}</span>
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2 text-sm">
+            <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+            {f}
+          </li>
+        ))}
+      </ul>
+    </button>
   )
 }

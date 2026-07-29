@@ -12,9 +12,13 @@ export type InviteData = Record<string, unknown>
  * Usamos `type` (não `interface`) para ser atribuível a Record<string, unknown>,
  * exigência da tipagem do supabase-js.
  */
+export type InvitePlan = "basico" | "premium"
+
 export type InviteFields = {
   title: string
   hosts: string
+  /** Plano do convite (define quais recursos aparecem). Padrão: básico. */
+  plan?: InvitePlan
   event_date: string
   event_time: string
   location: string

@@ -667,8 +667,9 @@ export default function Editor() {
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">✨ Estilo & animação</p>
 
-            <p className="mb-1.5 mt-3 text-xs font-medium text-muted-foreground">
+            <p className="mb-1.5 mt-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
               Fonte do título
+              <PremiumBadge />
             </p>
             <div className="grid grid-cols-2 gap-2">
               {FONT_OPTIONS.map((f) => (
@@ -767,7 +768,10 @@ export default function Editor() {
 
           {/* Música de fundo (player estilo Spotify) */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">🎵 Música de fundo</p>
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              🎵 Música de fundo
+              <PremiumBadge />
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Toca ao abrir o convite, num player estilo Spotify (capa + play +
               barra de progresso).
@@ -874,7 +878,10 @@ export default function Editor() {
 
           {/* Presentes / PIX */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">🎁 Presentes / PIX</p>
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              🎁 Presentes / PIX
+              <PremiumBadge />
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Deixe um recado e sua chave PIX. Geramos QR Code + “copia e cola”
               no convite.
@@ -1129,6 +1136,14 @@ export default function Editor() {
         </div>
       ) : null}
     </div>
+  )
+}
+
+function PremiumBadge() {
+  return (
+    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+      ⭐ Premium
+    </span>
   )
 }
 

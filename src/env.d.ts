@@ -9,6 +9,10 @@ interface ImportMetaEnv {
   readonly VITE_KIWIFY_CHECKOUT_URL?: string
   /** Preço exibido no checkout (ex: "R$ 14,90") */
   readonly VITE_KIWIFY_PRICE?: string
+  /** Link de checkout do produto Premium na Kiwify */
+  readonly VITE_KIWIFY_CHECKOUT_URL_PREMIUM?: string
+  /** Preço do Premium (ex: "R$ 19,90") */
+  readonly VITE_KIWIFY_PRICE_PREMIUM?: string
   /** E-mails de administradores (dono) que publicam sem pagar — separados por vírgula */
   readonly VITE_ADMIN_EMAILS?: string
 }

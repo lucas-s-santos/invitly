@@ -16,6 +16,8 @@ interface InviteRendererProps {
   className?: string
   /** conteúdo extra renderizado abaixo da mensagem, no mesmo fundo (ex: fotos/música) */
   children?: ReactNode
+  /** se false, recursos premium (fonte e filtro) usam o padrão. Editor: sempre true. */
+  premium?: boolean
 }
 
 export function InviteRenderer({
@@ -25,6 +27,7 @@ export function InviteRenderer({
   preview = false,
   className,
   children,
+  premium = true,
 }: InviteRendererProps) {
   const style = template.style
   const accent = fields.primary_color || style.accentColor
@@ -63,9 +66,10 @@ export function InviteRenderer({
   const delay = (ms: number): CSSProperties =>
     animate ? { animationDelay: `${ms}ms` } : {}
 
-  // Filtros da foto de fundo (blur + brilho + filtro artístico)
-  const filterCss =
-    fields.background_filter === "bw"
+  // Filtros da foto de fundo (blur + brilho sempre; filtro artístico é premium)
+  const filterCss = !premium
+    ? ""
+    : fields.background_filter === "bw"
       ? "grayscale(1)"
       : fields.background_filter === "sepia"
         ? "sepia(0.75)"
@@ -169,7 +173,8 @@ export function InviteRenderer({
           )}
           lang="pt-BR"
           style={{
-            fontFamily: fields.font_family || style.fontDisplay,
+            fontFamily:
+              (premium && fields.font_family) || style.fontDisplay,
             ...delay(200),
           }}
         >

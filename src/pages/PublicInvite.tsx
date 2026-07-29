@@ -88,10 +88,13 @@ export default function PublicInvite() {
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fields.location)}`
       : null
   const gallery = fields.gallery ?? []
+  const isPremium = fields.plan === "premium"
   const giftItems = (fields.gift_items ?? []).filter((g) => g.name.trim())
-  const hasGifts = Boolean(
-    fields.pix_key?.trim() || fields.gift_url?.trim() || giftItems.length > 0,
-  )
+  const hasGifts =
+    isPremium &&
+    Boolean(
+      fields.pix_key?.trim() || fields.gift_url?.trim() || giftItems.length > 0,
+    )
   const pixPayload = fields.pix_key?.trim()
     ? buildPixPayload({
         key: fields.pix_key.trim(),
@@ -120,9 +123,10 @@ export default function PublicInvite() {
             template={template}
             fields={fields}
             animate
+            premium={isPremium}
             className="min-h-svh pb-52"
           >
-            {opened && (gallery.length > 0 || fields.music_url) ? (
+            {opened && (gallery.length > 0 || (fields.music_url && isPremium)) ? (
               <div className="flex flex-col items-center gap-5">
                 {gallery.length > 0 ? (
                   <GalleryCarousel
@@ -130,7 +134,7 @@ export default function PublicInvite() {
                     height={fields.gallery_height ?? 128}
                   />
                 ) : null}
-                {fields.music_url ? (
+                {fields.music_url && isPremium ? (
                   <MusicPlayer
                     active={opened}
                     url={fields.music_url}
