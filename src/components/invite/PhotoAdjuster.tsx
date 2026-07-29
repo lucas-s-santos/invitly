@@ -1,11 +1,39 @@
 import { useRef } from "react"
 
-/** Ajuste da foto de fundo: arrastar p/ enquadrar + zoom + escurecimento. */
+import { cn } from "@/lib/utils"
+import type { InviteFields } from "@/types"
+
+type Filter = NonNullable<InviteFields["background_filter"]>
+
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: "none", label: "Nenhum" },
+  { id: "bw", label: "P&B" },
+  { id: "sepia", label: "Sépia" },
+  { id: "vintage", label: "Vintage" },
+]
+
+const POSITIONS: { label: string; value: string }[] = [
+  { label: "Topo", value: "50% 0%" },
+  { label: "Centro", value: "50% 50%" },
+  { label: "Baixo", value: "50% 100%" },
+]
+
+function filterCss(filter: Filter): string {
+  if (filter === "bw") return "grayscale(1)"
+  if (filter === "sepia") return "sepia(0.75)"
+  if (filter === "vintage") return "sepia(0.4) contrast(1.05) saturate(1.35)"
+  return ""
+}
+
+/** Ajuste da foto de fundo: enquadrar (arrastar/presets) + zoom + escurecer + blur + brilho + filtro. */
 export function PhotoAdjuster({
   image,
   position,
   zoom,
   overlay,
+  blur,
+  brightness,
+  filter,
   accent,
   onChange,
 }: {
@@ -13,12 +41,11 @@ export function PhotoAdjuster({
   position: string
   zoom: number
   overlay: number
+  blur: number
+  brightness: number
+  filter: Filter
   accent?: string
-  onChange: (patch: {
-    background_position?: string
-    background_zoom?: number
-    background_overlay?: number
-  }) => void
+  onChange: (patch: Partial<InviteFields>) => void
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
@@ -31,6 +58,15 @@ export function PhotoAdjuster({
     const y = Math.min(100, Math.max(0, ((clientY - r.top) / r.height) * 100))
     onChange({ background_position: `${Math.round(x)}% ${Math.round(y)}%` })
   }
+
+  const previewFilter =
+    [
+      blur ? `blur(${blur}px)` : "",
+      brightness != null ? `brightness(${brightness}%)` : "",
+      filterCss(filter),
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined
 
   return (
     <div className="mt-3 space-y-3">
@@ -54,7 +90,11 @@ export function PhotoAdjuster({
           alt=""
           aria-hidden
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: position, transform: `scale(${zoom})` }}
+          style={{
+            objectPosition: position,
+            transform: `scale(${Math.max(zoom, blur ? 1.06 : 1)})`,
+            filter: previewFilter,
+          }}
         />
         <div
           aria-hidden
@@ -64,6 +104,25 @@ export function PhotoAdjuster({
         <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white">
           arraste para enquadrar
         </span>
+      </div>
+
+      {/* Enquadramento rápido */}
+      <div className="flex gap-2">
+        {POSITIONS.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => onChange({ background_position: p.value })}
+            className={cn(
+              "flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors",
+              position === p.value
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50",
+            )}
+          >
+            {p.label}
+          </button>
+        ))}
       </div>
 
       <Slider
@@ -84,6 +143,50 @@ export function PhotoAdjuster({
         accent={accent}
         onChange={(v) => onChange({ background_overlay: v })}
       />
+      <Slider
+        label="Desfoque"
+        min={0}
+        max={20}
+        value={blur}
+        suffix="px"
+        accent={accent}
+        onChange={(v) => onChange({ background_blur: v || undefined })}
+      />
+      <Slider
+        label="Brilho"
+        min={50}
+        max={150}
+        value={brightness}
+        suffix="%"
+        accent={accent}
+        onChange={(v) => onChange({ background_brightness: v === 100 ? undefined : v })}
+      />
+
+      {/* Filtro artístico */}
+      <div>
+        <p className="mb-1 text-xs text-muted-foreground">Filtro</p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() =>
+                onChange({
+                  background_filter: f.id === "none" ? undefined : f.id,
+                })
+              }
+              className={cn(
+                "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors",
+                (filter || "none") === f.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

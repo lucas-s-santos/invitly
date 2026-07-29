@@ -53,11 +53,48 @@ export function InviteRenderer({
         ? "rgba(26,5,51,0.6)"
         : style.mutedColor
 
-  const anim = animate
-    ? "animate-in fade-in slide-in-from-bottom-3 fill-mode-both duration-700"
-    : ""
+  const entranceMap = {
+    fade: "animate-in fade-in fill-mode-both duration-700",
+    up: "animate-in fade-in slide-in-from-bottom-3 fill-mode-both duration-700",
+    down: "animate-in fade-in slide-in-from-top-3 fill-mode-both duration-700",
+    zoom: "animate-in fade-in zoom-in-95 fill-mode-both duration-700",
+  } as const
+  const anim = animate ? entranceMap[fields.entrance ?? "up"] : ""
   const delay = (ms: number): CSSProperties =>
     animate ? { animationDelay: `${ms}ms` } : {}
+
+  // Filtros da foto de fundo (blur + brilho + filtro artístico)
+  const filterCss =
+    fields.background_filter === "bw"
+      ? "grayscale(1)"
+      : fields.background_filter === "sepia"
+        ? "sepia(0.75)"
+        : fields.background_filter === "vintage"
+          ? "sepia(0.4) contrast(1.05) saturate(1.35)"
+          : ""
+  const bgFilter =
+    [
+      fields.background_blur ? `blur(${fields.background_blur}px)` : "",
+      fields.background_brightness != null
+        ? `brightness(${fields.background_brightness}%)`
+        : "",
+      filterCss,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined
+  const bgScale = Math.max(
+    fields.background_zoom ?? 1,
+    fields.background_blur ? 1.06 : 1,
+  )
+
+  // Tamanho do título
+  const titleSize = preview
+    ? "text-3xl"
+    : fields.title_size === "sm"
+      ? "text-3xl sm:text-4xl"
+      : fields.title_size === "lg"
+        ? "text-5xl sm:text-6xl"
+        : "text-4xl sm:text-5xl"
 
   return (
     <div
@@ -77,7 +114,8 @@ export function InviteRenderer({
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             style={{
               objectPosition: fields.background_position || "50% 50%",
-              transform: `scale(${fields.background_zoom ?? 1})`,
+              transform: `scale(${bgScale})`,
+              filter: bgFilter,
             }}
           />
           <div
@@ -125,12 +163,15 @@ export function InviteRenderer({
         <h1
           className={cn(
             "leading-tight font-bold break-words hyphens-auto",
-            preview ? "text-3xl" : "text-4xl sm:text-5xl",
+            titleSize,
             anim,
             hasFlicker && "invitly-flicker",
           )}
           lang="pt-BR"
-          style={{ fontFamily: style.fontDisplay, ...delay(200) }}
+          style={{
+            fontFamily: fields.font_family || style.fontDisplay,
+            ...delay(200),
+          }}
         >
           {hasTypewriter ? <Typewriter text={fields.title} /> : fields.title}
         </h1>

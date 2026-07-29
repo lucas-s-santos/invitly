@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { getTemplate } from "@/lib/templates"
 import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
+import { FONT_OPTIONS } from "@/lib/fonts"
 import {
   clearGuestDraft,
   loadGuestDraft,
@@ -47,6 +48,7 @@ import { FullScreenLoader } from "@/components/FullScreenLoader"
 import { PagePlaceholder } from "@/components/PagePlaceholder"
 import { InviteRenderer } from "@/components/invite/InviteRenderer"
 import { PhotoAdjuster } from "@/components/invite/PhotoAdjuster"
+import { GalleryCarousel } from "@/components/invite/GalleryCarousel"
 
 type SaveStatus = "idle" | "saving" | "saved"
 
@@ -599,6 +601,9 @@ export default function Editor() {
                 position={fields.background_position || "50% 50%"}
                 zoom={fields.background_zoom ?? 1}
                 overlay={fields.background_overlay ?? 45}
+                blur={fields.background_blur ?? 0}
+                brightness={fields.background_brightness ?? 100}
+                filter={fields.background_filter ?? "none"}
                 accent={fields.primary_color ?? template.style.accentColor}
                 onChange={patch}
               />
@@ -655,6 +660,93 @@ export default function Editor() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Estilo & animação */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">✨ Estilo & animação</p>
+
+            <p className="mb-1.5 mt-3 text-xs font-medium text-muted-foreground">
+              Fonte do título
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {FONT_OPTIONS.map((f) => (
+                <button
+                  key={f.label}
+                  type="button"
+                  onClick={() =>
+                    set(
+                      "font_family",
+                      f.css === template.style.fontDisplay ? undefined : f.css,
+                    )
+                  }
+                  style={{ fontFamily: f.css }}
+                  className={cn(
+                    "rounded-lg border px-2 py-2 text-base transition-colors",
+                    (fields.font_family ?? template.style.fontDisplay) === f.css
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/50",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+              Tamanho do título
+            </p>
+            <div className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+              {(
+                [
+                  { v: "sm", label: "Pequeno" },
+                  { v: undefined, label: "Médio" },
+                  { v: "lg", label: "Grande" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => set("title_size", opt.v)}
+                  className={cn(
+                    "rounded-md px-3 py-1 transition-colors",
+                    (fields.title_size ?? undefined) === opt.v
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+              Efeito de entrada
+            </p>
+            <div className="grid grid-cols-4 gap-1.5">
+              {(
+                [
+                  { v: undefined, label: "Subir" },
+                  { v: "fade", label: "Fade" },
+                  { v: "zoom", label: "Zoom" },
+                  { v: "down", label: "Descer" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => set("entrance", opt.v)}
+                  className={cn(
+                    "rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors",
+                    (fields.entrance ?? undefined) === opt.v
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -876,6 +968,30 @@ export default function Editor() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   Aparecem num carrossel no convite. JPG ou PNG até 5 MB cada.
                 </p>
+                {fields.gallery && fields.gallery.length > 0 ? (
+                  <div className="mt-3">
+                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Altura das fotos</span>
+                      <span className="tabular-nums">
+                        {fields.gallery_height ?? 128}px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={80}
+                      max={220}
+                      value={fields.gallery_height ?? 128}
+                      onChange={(e) =>
+                        set("gallery_height", Number(e.target.value))
+                      }
+                      className="h-1.5 w-full cursor-pointer"
+                      style={{
+                        accentColor:
+                          fields.primary_color ?? template.style.accentColor,
+                      }}
+                    />
+                  </div>
+                ) : null}
               </>
             )}
           </div>
@@ -896,7 +1012,14 @@ export default function Editor() {
                 template={template}
                 fields={fields}
                 className="min-h-full"
-              />
+              >
+                {fields.gallery && fields.gallery.length > 0 ? (
+                  <GalleryCarousel
+                    images={fields.gallery}
+                    height={fields.gallery_height ?? 128}
+                  />
+                ) : null}
+              </InviteRenderer>
             </div>
           </div>
         </div>
@@ -929,7 +1052,14 @@ export default function Editor() {
               template={template}
               fields={fields}
               className="min-h-full"
-            />
+            >
+              {fields.gallery && fields.gallery.length > 0 ? (
+                <GalleryCarousel
+                  images={fields.gallery}
+                  height={fields.gallery_height ?? 128}
+                />
+              ) : null}
+            </InviteRenderer>
           </div>
         </div>
       ) : null}

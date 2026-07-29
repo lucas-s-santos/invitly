@@ -2,7 +2,13 @@
  * Fotos da galeria rolando sozinhas, lado a lado (marquee contínuo, sem emenda).
  * Sem setas, sem paginação. As bordas ganham um leve fade.
  */
-export function GalleryCarousel({ images }: { images: string[] }) {
+export function GalleryCarousel({
+  images,
+  height = 128,
+}: {
+  images: string[]
+  height?: number
+}) {
   if (images.length === 0) return null
 
   // Repete até ter uma base grande o suficiente e duplica p/ o loop sem emenda
@@ -25,7 +31,8 @@ export function GalleryCarousel({ images }: { images: string[] }) {
             alt=""
             aria-hidden
             loading="lazy"
-            className="h-32 w-auto shrink-0 rounded-2xl object-contain shadow-lg ring-1 ring-white/15"
+            style={{ height }}
+            className="w-auto shrink-0 rounded-2xl object-contain shadow-lg ring-1 ring-white/15"
           />
         ))}
       </div>

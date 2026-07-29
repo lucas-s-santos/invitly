@@ -34,6 +34,20 @@ export type InviteFields = {
   background_zoom?: number
   /** Escurecimento sobre a foto (0–100), p/ legibilidade do texto. */
   background_overlay?: number
+  /** Desfoque da foto (px, 0–20). */
+  background_blur?: number
+  /** Brilho da foto (%, 50–150). */
+  background_brightness?: number
+  /** Filtro artístico da foto. */
+  background_filter?: "none" | "bw" | "sepia" | "vintage"
+
+  // ── Estilo do texto / entrada ──
+  /** Tamanho do título. */
+  title_size?: "sm" | "md" | "lg"
+  /** Fonte do título (valor CSS de font-family). */
+  font_family?: string
+  /** Animação de entrada do conteúdo. */
+  entrance?: "fade" | "up" | "zoom" | "down"
 
   // ── Extras do convite (opcionais) ──
   /** Link do mapa (Google Maps/Waze). Se vazio, gera busca a partir de `location`. */
@@ -54,6 +68,8 @@ export type InviteFields = {
   gift_message?: string
   /** Link externo de lista de presentes (opcional). */
   gift_url?: string
+  /** Altura das fotos do carrossel (px). */
+  gallery_height?: number
 }
 
 export type Invite = {

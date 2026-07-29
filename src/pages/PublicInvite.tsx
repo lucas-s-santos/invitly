@@ -122,7 +122,10 @@ export default function PublicInvite() {
             {opened && (gallery.length > 0 || fields.music_url) ? (
               <div className="flex flex-col items-center gap-5">
                 {gallery.length > 0 ? (
-                  <GalleryCarousel images={gallery} />
+                  <GalleryCarousel
+                    images={gallery}
+                    height={fields.gallery_height ?? 128}
+                  />
                 ) : null}
                 {fields.music_url ? (
                   <MusicPlayer
