@@ -16,6 +16,7 @@ const PublicInvite = lazy(() => import("@/pages/PublicInvite"))
 const Rsvp = lazy(() => import("@/pages/Rsvp"))
 const GuestList = lazy(() => import("@/pages/GuestList"))
 const Account = lazy(() => import("@/pages/Account"))
+const Admin = lazy(() => import("@/pages/Admin"))
 const Privacy = lazy(() => import("@/pages/Privacy"))
 const Terms = lazy(() => import("@/pages/Terms"))
 const NotFound = lazy(() => import("@/pages/NotFound"))
@@ -75,6 +76,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <Admin />
             </ProtectedRoute>
           }
         />

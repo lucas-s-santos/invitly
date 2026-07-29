@@ -107,6 +107,31 @@ export type InviteView = {
   device: DeviceType | null
 }
 
+// ── Painel do administrador ──
+export type AdminStats = {
+  invites: number
+  published: number
+  drafts: number
+  rsvps: number
+  views: number
+  users: number
+}
+export type AdminInviteRow = {
+  id: string
+  title: string
+  slug: string
+  status: InviteStatus
+  views: number
+  created_at: string
+  owner_email: string | null
+}
+export type AdminUserRow = {
+  id: string
+  email: string | null
+  created_at: string
+  invites: number
+}
+
 type InsertOf<T, Optional extends keyof T> = Omit<T, Optional> &
   Partial<Pick<T, Optional>>
 
@@ -156,6 +181,42 @@ export interface Database {
       }
       delete_my_account: {
         Args: Record<string, never>
+        Returns: undefined
+      }
+      is_admin: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
+      admin_stats: {
+        Args: Record<string, never>
+        Returns: AdminStats
+      }
+      admin_invites: {
+        Args: Record<string, never>
+        Returns: AdminInviteRow[]
+      }
+      admin_users: {
+        Args: Record<string, never>
+        Returns: AdminUserRow[]
+      }
+      admin_admins: {
+        Args: Record<string, never>
+        Returns: string[]
+      }
+      admin_add_admin: {
+        Args: { p_email: string }
+        Returns: undefined
+      }
+      admin_remove_admin: {
+        Args: { p_email: string }
+        Returns: undefined
+      }
+      admin_set_invite_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      admin_delete_invite: {
+        Args: { p_id: string }
         Returns: undefined
       }
     }

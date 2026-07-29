@@ -11,12 +11,14 @@ import {
   Pencil,
   Plus,
   Settings,
+  ShieldCheck,
   Trash2,
   Users,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/hooks/useAuth"
+import { isAdminEmail } from "@/lib/admin"
 import {
   useDeleteInvite,
   useDuplicateInvite,
@@ -73,6 +75,14 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <LanguageToggle />
+            {isAdminEmail(user?.email) ? (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/admin" aria-label="Administração">
+                  <ShieldCheck className="size-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+              </Button>
+            ) : null}
             <Button asChild variant="ghost" size="sm">
               <Link to="/conta" aria-label="Minha conta">
                 <Settings className="size-4" />
