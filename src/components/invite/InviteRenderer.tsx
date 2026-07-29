@@ -41,20 +41,24 @@ export function InviteRenderer({
   const hasFlicker = animTypes.has("flicker")
 
   const bgImage = fields.background_image
-  const textColor = bgImage
-    ? "#ffffff"
-    : fields.text_mode === "light"
+  const isDarkText = fields.text_mode === "dark"
+  // text_mode explícito vence; senão foto = texto claro; senão o do tema.
+  const textColor =
+    fields.text_mode === "light"
       ? "#ffffff"
-      : fields.text_mode === "dark"
+      : isDarkText
         ? "#1a0533"
-        : style.textColor
-  const mutedColor = bgImage
-    ? "rgba(255,255,255,0.8)"
-    : fields.text_mode === "light"
+        : bgImage
+          ? "#ffffff"
+          : style.textColor
+  const mutedColor =
+    fields.text_mode === "light"
       ? "rgba(255,255,255,0.72)"
-      : fields.text_mode === "dark"
-        ? "rgba(26,5,51,0.6)"
-        : style.mutedColor
+      : isDarkText
+        ? "rgba(26,5,51,0.65)"
+        : bgImage
+          ? "rgba(255,255,255,0.8)"
+          : style.mutedColor
 
   const entranceMap = {
     fade: "animate-in fade-in fill-mode-both duration-700",
@@ -144,7 +148,15 @@ export function InviteRenderer({
           "relative flex w-full max-w-md flex-col items-center",
           preview ? "gap-3" : "gap-5",
         )}
-        style={bgImage ? { textShadow: "0 1px 14px rgba(0,0,0,0.55)" } : undefined}
+        style={
+          bgImage
+            ? {
+                textShadow: isDarkText
+                  ? "0 1px 12px rgba(255,255,255,0.65)"
+                  : "0 1px 14px rgba(0,0,0,0.55)",
+              }
+            : undefined
+        }
       >
         {style.motif && !preview ? (
           <div className={cn("text-4xl", anim)} style={delay(0)} aria-hidden>

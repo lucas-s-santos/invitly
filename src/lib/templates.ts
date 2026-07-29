@@ -409,7 +409,33 @@ const CONFIGS: CategoryConfig[] = [
   },
 ]
 
+/** Foto ilustrativa por categoria (fundo inicial do template). */
+const CATEGORY_IMAGE: Record<
+  string,
+  { img: string; overlay: number; textDark?: boolean }
+> = {
+  wedding: { img: "/templates/wedding.jpg", overlay: 30 },
+  birthday_kids: {
+    img: "/templates/birthday-kids.jpg",
+    overlay: 16,
+    textDark: true,
+  },
+  birthday_adult: { img: "/templates/birthday-adult.jpg", overlay: 46 },
+  baby_shower: { img: "/templates/baby.jpg", overlay: 10, textDark: true },
+  halloween: { img: "/templates/halloween.jpg", overlay: 42 },
+}
+
 function buildTemplate(cfg: CategoryConfig, variant: Variant): Template {
+  const ci = CATEGORY_IMAGE[cfg.category]
+  const defaultData: InviteFields = ci
+    ? {
+        ...cfg.defaults,
+        background_image: ci.img,
+        background_overlay: ci.overlay,
+        ...(ci.textDark ? { text_mode: "dark" as const } : {}),
+      }
+    : cfg.defaults
+
   return {
     id: `${cfg.category}-${variant.suffix}`,
     category: cfg.category,
@@ -419,7 +445,7 @@ function buildTemplate(cfg: CategoryConfig, variant: Variant): Template {
     fields: STANDARD_FIELDS,
     animations: cfg.animations.map((type) => ({ type })),
     style: variant.style,
-    defaultData: cfg.defaults,
+    defaultData,
   }
 }
 
