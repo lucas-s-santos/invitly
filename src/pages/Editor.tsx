@@ -1001,10 +1001,10 @@ export default function Editor() {
         <div className="flex items-start justify-center">
           <div
             className={cn(
-              "overflow-hidden rounded-[2rem] border-8 border-foreground/80 bg-background shadow-2xl transition-all",
+              "overflow-hidden rounded-[2.2rem] border-8 border-foreground/80 bg-background shadow-2xl transition-all lg:sticky lg:top-24",
               device === "mobile"
-                ? "h-[640px] w-[320px]"
-                : "h-[560px] w-full max-w-[820px] rounded-2xl",
+                ? "h-[78vh] max-h-[820px] min-h-[600px] w-[380px] max-w-full"
+                : "h-[74vh] max-h-[720px] min-h-[520px] w-full max-w-[960px] rounded-2xl",
             )}
           >
             <div className="h-full w-full overflow-y-auto">
