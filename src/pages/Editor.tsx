@@ -27,7 +27,7 @@ import {
   useUpdateInvite,
 } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
-import { getTemplate } from "@/lib/templates"
+import { getTemplate, TEMPLATES } from "@/lib/templates"
 import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
 import { FONT_OPTIONS } from "@/lib/fonts"
@@ -39,7 +39,7 @@ import {
 } from "@/lib/guestDraft"
 import { BACKGROUND_PATTERNS, type BackgroundPattern } from "@/lib/backgrounds"
 import { cn } from "@/lib/utils"
-import type { InviteFields } from "@/types"
+import type { InviteFields, Template } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -49,6 +49,7 @@ import { PagePlaceholder } from "@/components/PagePlaceholder"
 import { InviteRenderer } from "@/components/invite/InviteRenderer"
 import { PhotoAdjuster } from "@/components/invite/PhotoAdjuster"
 import { GalleryCarousel } from "@/components/invite/GalleryCarousel"
+import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
 type SaveStatus = "idle" | "saving" | "saved"
 
@@ -68,6 +69,7 @@ export default function Editor() {
   )
 
   const [fields, setFields] = useState<InviteFields | null>(null)
+  const [templateId, setTemplateId] = useState<string | null>(null)
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile")
   const [showPreview, setShowPreview] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
@@ -88,10 +90,12 @@ export default function Editor() {
     if (isGuest) {
       if (guestDraft) {
         setFields(guestDraft.fields)
+        setTemplateId(guestDraft.templateId)
         initRef.current = true
       }
     } else if (invite) {
       setFields(invite.data as InviteFields)
+      setTemplateId(invite.template_id)
       initRef.current = true
     }
   }, [invite, isGuest, guestDraft])
@@ -128,13 +132,7 @@ export default function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fields, id, isGuest])
 
-  const template = isGuest
-    ? guestDraft
-      ? getTemplate(guestDraft.templateId)
-      : undefined
-    : invite
-      ? getTemplate(invite.template_id)
-      : undefined
+  const template = templateId ? getTemplate(templateId) : undefined
 
   if (publishing) return <FullScreenLoader />
   if (!isGuest && isLoading) return <FullScreenLoader />
@@ -174,6 +172,17 @@ export default function Editor() {
   function patch(p: Partial<InviteFields>) {
     dirtyRef.current = true
     setFields((prev) => (prev ? { ...prev, ...p } : prev))
+  }
+
+  function switchTemplate(tpl: Template) {
+    if (tpl.id === templateId) return
+    setTemplateId(tpl.id)
+    if (isGuest) {
+      if (guestDraft && fields)
+        saveGuestDraft({ templateId: tpl.id, category: tpl.category, fields })
+    } else if (id) {
+      update.mutate({ id, templateId: tpl.id, category: tpl.category })
+    }
   }
 
   function applyPattern(p: BackgroundPattern) {
@@ -444,6 +453,38 @@ export default function Editor() {
               </div>
             </div>
           ) : null}
+
+          {/* Trocar modelo (visual) — mantém o conteúdo */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">Modelo do convite</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Toque para trocar o visual — seu conteúdo é mantido.
+            </p>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => switchTemplate(tpl)}
+                  title={tpl.name}
+                  aria-label={`Usar modelo ${tpl.name}`}
+                  className={cn(
+                    "shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
+                    tpl.id === templateId
+                      ? "border-primary ring-2 ring-primary/30"
+                      : "border-transparent",
+                  )}
+                >
+                  <TemplatePreview
+                    template={tpl}
+                    baseW={300}
+                    baseH={400}
+                    className="w-16"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
 
           <Field label="Título do evento" hint={`${fields.title.length}/80`}>
             <Input

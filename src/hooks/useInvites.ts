@@ -168,14 +168,25 @@ export function useUpdateInvite() {
       id,
       title,
       fields,
+      templateId,
+      category,
     }: {
       id: string
       title?: string
       fields?: InviteFields
+      templateId?: string
+      category?: string
     }): Promise<Invite> => {
-      const patch: { title?: string; data?: InviteFields } = {}
+      const patch: {
+        title?: string
+        data?: InviteFields
+        template_id?: string
+        category?: string
+      } = {}
       if (title !== undefined) patch.title = title
       if (fields !== undefined) patch.data = fields
+      if (templateId !== undefined) patch.template_id = templateId
+      if (category !== undefined) patch.category = category
 
       const { data, error } = await supabase
         .from("invites")
