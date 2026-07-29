@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 
-import { getTemplateDefaults, TEMPLATES } from "@/lib/templates"
+import { BLANK_FIELDS, TEMPLATES } from "@/lib/templates"
 import { useCreateInvite } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
 import { loadGuestDraft, saveGuestDraft } from "@/lib/guestDraft"
@@ -24,9 +24,9 @@ export default function TemplateSelect() {
     const def = TEMPLATES[0]
 
     if (user) {
-      // Logado: cria o rascunho no banco e vai pro editor
+      // Logado: cria um convite em branco no banco e vai pro editor
       createInvite.mutate(
-        { templateId: def.id, category: def.category },
+        { templateId: def.id, category: def.category, fields: BLANK_FIELDS },
         {
           onSuccess: (invite) =>
             navigate(`/editor/${invite.id}`, { replace: true }),
@@ -37,15 +37,13 @@ export default function TemplateSelect() {
         },
       )
     } else {
-      // Convidado: retoma o rascunho existente ou cria um padrão
+      // Convidado: retoma o rascunho existente ou cria um em branco
       if (!loadGuestDraft()) {
-        const defaults = getTemplateDefaults(def.id)
-        if (defaults)
-          saveGuestDraft({
-            templateId: def.id,
-            category: def.category,
-            fields: defaults,
-          })
+        saveGuestDraft({
+          templateId: def.id,
+          category: def.category,
+          fields: BLANK_FIELDS,
+        })
       }
       navigate("/criar/editor", { replace: true })
     }

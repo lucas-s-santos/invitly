@@ -78,6 +78,7 @@ export default function Editor() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
   const dirtyRef = useRef(false)
+  const touchedRef = useRef(false)
   const initRef = useRef(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
@@ -87,15 +88,20 @@ export default function Editor() {
   // Inicializa o formulário (do banco, ou do rascunho local se convidado)
   useEffect(() => {
     if (initRef.current) return
+    const hasContent = (f: InviteFields) =>
+      Boolean(f.title?.trim() || f.hosts?.trim() || f.message?.trim())
     if (isGuest) {
       if (guestDraft) {
         setFields(guestDraft.fields)
         setTemplateId(guestDraft.templateId)
+        touchedRef.current = hasContent(guestDraft.fields)
         initRef.current = true
       }
     } else if (invite) {
-      setFields(invite.data as InviteFields)
+      const data = invite.data as InviteFields
+      setFields(data)
       setTemplateId(invite.template_id)
+      touchedRef.current = hasContent(data)
       initRef.current = true
     }
   }, [invite, isGuest, guestDraft])
@@ -166,22 +172,56 @@ export default function Editor() {
 
   function set<K extends keyof InviteFields>(key: K, value: InviteFields[K]) {
     dirtyRef.current = true
+    touchedRef.current = true
     setFields((prev) => (prev ? { ...prev, [key]: value } : prev))
   }
 
   function patch(p: Partial<InviteFields>) {
     dirtyRef.current = true
+    touchedRef.current = true
     setFields((prev) => (prev ? { ...prev, ...p } : prev))
   }
 
   function switchTemplate(tpl: Template) {
-    if (tpl.id === templateId) return
+    if (!fields) return
     setTemplateId(tpl.id)
+    const d = tpl.defaultData
+
+    let newFields: InviteFields
+    if (!touchedRef.current) {
+      // Convite em branco / navegando modelos: carrega o exemplo completo (foto + texto)
+      newFields = { ...d }
+    } else {
+      // Já personalizado: mantém o texto; troca a foto só se ainda for a de um modelo
+      const usingTemplatePhoto =
+        !fields.background_image ||
+        fields.background_image.startsWith("/templates/")
+      newFields = usingTemplatePhoto
+        ? {
+            ...fields,
+            background_image: d.background_image,
+            background_overlay: d.background_overlay,
+            text_mode: d.text_mode,
+          }
+        : fields
+    }
+
+    setFields(newFields)
+    dirtyRef.current = true
     if (isGuest) {
-      if (guestDraft && fields)
-        saveGuestDraft({ templateId: tpl.id, category: tpl.category, fields })
+      if (guestDraft)
+        saveGuestDraft({
+          templateId: tpl.id,
+          category: tpl.category,
+          fields: newFields,
+        })
     } else if (id) {
-      update.mutate({ id, templateId: tpl.id, category: tpl.category })
+      update.mutate({
+        id,
+        templateId: tpl.id,
+        category: tpl.category,
+        fields: newFields,
+      })
     }
   }
 
@@ -488,6 +528,7 @@ export default function Editor() {
 
           <Field label="Título do evento" hint={`${fields.title.length}/80`}>
             <Input
+              placeholder="Ex: Nosso Casamento"
               value={fields.title}
               maxLength={80}
               onChange={(e) => set("title", e.target.value)}
@@ -495,6 +536,7 @@ export default function Editor() {
           </Field>
           <Field label="Anfitriões / Nomes">
             <Input
+              placeholder="Ex: João & Maria"
               value={fields.hosts}
               maxLength={80}
               onChange={(e) => set("hosts", e.target.value)}
@@ -518,6 +560,7 @@ export default function Editor() {
           </div>
           <Field label="Local">
             <Input
+              placeholder="Ex: Espaço Jardim — São Paulo, SP"
               value={fields.location}
               maxLength={120}
               onChange={(e) => set("location", e.target.value)}
@@ -535,6 +578,7 @@ export default function Editor() {
           </Field>
           <Field label="Mensagem" hint={`${fields.message.length}/400`}>
             <Textarea
+              placeholder="Escreva um recado para os convidados…"
               value={fields.message}
               maxLength={400}
               rows={4}

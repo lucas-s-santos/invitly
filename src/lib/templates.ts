@@ -1,5 +1,17 @@
 import type { InviteFields, Template, TemplateField, TemplateStyle } from "@/types"
 
+/** Convite em branco (ao criar): fundo branco, campos vazios pra digitar. */
+export const BLANK_FIELDS: InviteFields = {
+  title: "",
+  hosts: "",
+  event_date: "",
+  event_time: "",
+  location: "",
+  message: "",
+  background_color: "#ffffff",
+  text_mode: "dark",
+}
+
 /** Campos editáveis — compartilhados por todos os templates. */
 export const STANDARD_FIELDS: TemplateField[] = [
   { key: "title", label: "Título do evento", type: "text", required: true, maxLength: 80 },

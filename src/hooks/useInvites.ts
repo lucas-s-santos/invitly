@@ -106,7 +106,7 @@ export function useCreateInvite() {
       if (!defaults) throw new Error("Template inválido.")
 
       const content = fields ?? defaults
-      const title = content.title?.trim() || defaults.title
+      const title = content.title?.trim() || "Convite"
 
       // Imagens embutidas (rascunho de convidado): não guarda base64 no banco —
       // insere sem elas e depois sobe pro Storage, trocando pela URL pública.
