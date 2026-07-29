@@ -911,6 +911,71 @@ export default function Editor() {
                 value={fields.gift_url ?? ""}
                 onChange={(e) => set("gift_url", e.target.value || undefined)}
               />
+
+              {/* Lista de presentes (itens) */}
+              <div className="rounded-lg border border-dashed border-border p-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Lista de presentes
+                </p>
+                {fields.gift_items && fields.gift_items.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {fields.gift_items.map((item, i) => (
+                      <div key={i} className="flex gap-2">
+                        <Input
+                          className="flex-1"
+                          placeholder="Ex: Jogo de panelas"
+                          value={item.name}
+                          onChange={(e) => {
+                            const items = [...(fields.gift_items ?? [])]
+                            items[i] = { ...items[i], name: e.target.value }
+                            set("gift_items", items)
+                          }}
+                        />
+                        <Input
+                          className="w-24"
+                          placeholder="R$ (opc)"
+                          value={item.price ?? ""}
+                          onChange={(e) => {
+                            const items = [...(fields.gift_items ?? [])]
+                            items[i] = {
+                              ...items[i],
+                              price: e.target.value || undefined,
+                            }
+                            set("gift_items", items)
+                          }}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            set(
+                              "gift_items",
+                              (fields.gift_items ?? []).filter(
+                                (_, j) => j !== i,
+                              ),
+                            )
+                          }
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 w-full"
+                  onClick={() =>
+                    set("gift_items", [
+                      ...(fields.gift_items ?? []),
+                      { name: "" },
+                    ])
+                  }
+                >
+                  + Adicionar item
+                </Button>
+              </div>
             </div>
           </div>
 

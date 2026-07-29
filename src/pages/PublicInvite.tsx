@@ -88,7 +88,10 @@ export default function PublicInvite() {
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fields.location)}`
       : null
   const gallery = fields.gallery ?? []
-  const hasGifts = Boolean(fields.pix_key?.trim() || fields.gift_url?.trim())
+  const giftItems = (fields.gift_items ?? []).filter((g) => g.name.trim())
+  const hasGifts = Boolean(
+    fields.pix_key?.trim() || fields.gift_url?.trim() || giftItems.length > 0,
+  )
   const pixPayload = fields.pix_key?.trim()
     ? buildPixPayload({
         key: fields.pix_key.trim(),
@@ -304,6 +307,29 @@ export default function PublicInvite() {
               <p className="text-center text-sm leading-relaxed text-muted-foreground">
                 {fields.gift_message}
               </p>
+            ) : null}
+
+            {giftItems.length > 0 ? (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Lista de presentes
+                </p>
+                <ul className="divide-y divide-border rounded-xl border border-border">
+                  {giftItems.map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
+                    >
+                      <span>{item.name}</span>
+                      {item.price ? (
+                        <span className="shrink-0 font-medium text-muted-foreground">
+                          {item.price}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
 
             {pixPayload ? (

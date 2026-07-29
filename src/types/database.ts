@@ -68,6 +68,8 @@ export type InviteFields = {
   gift_message?: string
   /** Link externo de lista de presentes (opcional). */
   gift_url?: string
+  /** Lista de presentes (itens cadastrados pelo anfitrião). */
+  gift_items?: { name: string; price?: string }[]
   /** Altura das fotos do carrossel (px). */
   gallery_height?: number
 }
