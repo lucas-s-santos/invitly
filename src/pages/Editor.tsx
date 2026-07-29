@@ -482,6 +482,16 @@ export default function Editor() {
               onChange={(e) => set("location", e.target.value)}
             />
           </Field>
+          <Field label="🗺️ Link do mapa (opcional)">
+            <Input
+              placeholder="https://maps.google.com/..."
+              value={fields.maps_url ?? ""}
+              onChange={(e) => set("maps_url", e.target.value || undefined)}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Google Maps ou Waze. Vazio? Geramos a busca pelo endereço acima.
+            </p>
+          </Field>
           <Field label="Mensagem" hint={`${fields.message.length}/400`}>
             <Textarea
               value={fields.message}
@@ -749,21 +759,6 @@ export default function Editor() {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Como chegar (mapa) */}
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">🗺️ Como chegar</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Cole o link do local no Google Maps ou Waze. Se deixar vazio,
-              geramos a busca a partir do endereço acima.
-            </p>
-            <Input
-              className="mt-3"
-              placeholder="https://maps.google.com/..."
-              value={fields.maps_url ?? ""}
-              onChange={(e) => set("maps_url", e.target.value || undefined)}
-            />
           </div>
 
           {/* Música de fundo (player estilo Spotify) */}
