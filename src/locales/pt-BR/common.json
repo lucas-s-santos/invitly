@@ -7,14 +7,14 @@
     "faq": "Dúvidas",
     "login": "Entrar",
     "dashboard": "Meus convites",
-    "createCta": "Criar convite grátis"
+    "createCta": "Criar meu convite"
   },
   "hero": {
     "badge": "✨ Convites digitais animados",
     "title": "Convites que encantam antes da festa começar",
     "highlight": "encantam",
     "subtitle": "Crie convites animados para casamento, aniversário, chá de bebê e muito mais. Personalize em minutos, compartilhe por um link e receba as confirmações de presença.",
-    "ctaPrimary": "Criar meu convite grátis",
+    "ctaPrimary": "Criar meu convite",
     "ctaSecondary": "Ver templates",
     "trust": "Sem cartão de crédito. Você só paga quando publicar."
   },
