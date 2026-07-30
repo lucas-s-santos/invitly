@@ -435,21 +435,21 @@ function Testimonials() {
       event: "Casamento",
       quote:
         "Nossos convidados amaram! A música tocando ao abrir emocionou todo mundo — e ficou pronto rapidinho.",
-      color: "#ff6b9d",
+      avatar: "/perfil1.jpg",
     },
     {
       name: "Juliana",
       event: "Chá de bebê",
       quote:
         "Fiz em 10 minutos e ficou lindo. A lista de presentes com PIX salvou minha vida.",
-      color: "#7c5cff",
+      avatar: "/perfil2.jpg",
     },
     {
       name: "Marcos",
       event: "Aniversário de 40",
       quote:
         "Parece caro de tão profissional, mas foi baratinho. As confirmações chegaram organizadas sozinhas.",
-      color: "#22b8a6",
+      avatar: "/perfil3.jpg",
     },
   ]
 
@@ -475,12 +475,12 @@ function Testimonials() {
                 “{it.quote}”
               </p>
               <div className="mt-5 flex items-center gap-3">
-                <span
-                  className="flex size-9 items-center justify-center rounded-full text-sm font-bold text-white"
-                  style={{ backgroundColor: it.color }}
-                >
-                  {it.name[0]}
-                </span>
+                <img
+                  src={it.avatar}
+                  alt={it.name}
+                  loading="lazy"
+                  className="size-11 rounded-full object-cover ring-2 ring-primary/20"
+                />
                 <div>
                   <p className="text-sm font-semibold">{it.name}</p>
                   <p className="text-xs text-muted-foreground">{it.event}</p>
