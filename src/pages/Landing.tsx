@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -79,60 +79,68 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   )
 }
 
-const HERO_CYCLE = [
-  "wedding-classico",
-  "wedding-marmore",
-  "graduation-navy",
-  "christmas-verde",
-  "halloween-abobora",
-]
-
-function HeroShowcase() {
-  const [index, setIndex] = useState(0)
-
-  useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return
-    }
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % HERO_CYCLE.length),
-      3800,
-    )
-    return () => clearInterval(id)
-  }, [])
-
+/** Um celular com um convite real na tela (moldura + máscara da tela). */
+function Phone({ templateId, delay = 0 }: { templateId: string; delay?: number }) {
+  const template = getTemplate(templateId)
+  if (!template) return null
   return (
-    <div className="flex justify-center">
-      <div className="relative w-[270px] [animation:invitly-float_6s_ease-in-out_infinite] sm:w-[310px]">
-        {/* brilho dourado suave por trás */}
+    <div
+      className="relative aspect-[1000/1500] drop-shadow-2xl"
+      style={{ animation: `invitly-float 6s ease-in-out ${delay}s infinite` }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          WebkitMaskImage: "url(/hero-phone-mask.png)",
+          maskImage: "url(/hero-phone-mask.png)",
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+        }}
+      >
         <div
-          aria-hidden
-          className="absolute -inset-8 rounded-[3rem] bg-brand-gold/20 blur-3xl"
-        />
-        <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] shadow-2xl ring-1 ring-white/25">
-          {HERO_CYCLE.map((id, i) => {
-            const template = getTemplate(id)
-            if (!template) return null
-            return (
-              <div
-                key={id}
-                aria-hidden={i !== index}
-                className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                style={{ opacity: i === index ? 1 : 0 }}
-              >
-                <TemplatePreview
-                  template={template}
-                  baseW={300}
-                  baseH={400}
-                  className="h-full w-full"
-                />
-              </div>
-            )
-          })}
+          className="absolute"
+          style={{ left: "21%", top: "7%", width: "56%", height: "86%" }}
+        >
+          <TemplatePreview
+            template={template}
+            baseW={300}
+            baseH={690}
+            className="h-full w-full"
+          />
         </div>
+      </div>
+      <img
+        src="/hero-phone.png"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full select-none"
+      />
+    </div>
+  )
+}
+
+/** Vitrine do hero: 3 celulares flutuando (um na frente, dois atrás inclinados). */
+function HeroPhones() {
+  return (
+    <div className="relative mx-auto h-[430px] w-full max-w-[440px] sm:h-[500px]">
+      {/* brilho dourado suave por trás */}
+      <div
+        aria-hidden
+        className="absolute left-1/2 top-1/2 size-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-gold/20 blur-3xl"
+      />
+      {/* traseiro esquerdo */}
+      <div className="absolute left-[1%] top-[16%] w-[39%] -rotate-[9deg]">
+        <Phone templateId="graduation-navy" delay={0.9} />
+      </div>
+      {/* traseiro direito */}
+      <div className="absolute right-[1%] top-[11%] w-[39%] rotate-[9deg]">
+        <Phone templateId="christmas-verde" delay={1.7} />
+      </div>
+      {/* frontal (centro, maior) */}
+      <div className="absolute left-1/2 top-0 z-10 w-[50%] -translate-x-1/2">
+        <Phone templateId="wedding-classico" delay={0.2} />
       </div>
     </div>
   )
@@ -185,8 +193,8 @@ function Hero({ ctaTo }: { ctaTo: string }) {
           <p className="mt-5 text-sm text-white/55">{t("hero.trust")}</p>
         </div>
 
-        {/* Vitrine — convite real trocando sozinho */}
-        <HeroShowcase />
+        {/* Vitrine — vários celulares flutuando */}
+        <HeroPhones />
       </div>
     </section>
   )
