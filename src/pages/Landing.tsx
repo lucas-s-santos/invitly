@@ -163,7 +163,7 @@ function HeroPhones() {
       </div>
       {/* frontal (centro, maior) */}
       <div className="absolute left-1/2 top-0 z-10 w-[54%] -translate-x-1/2">
-        <Phone templateId="wedding-classico" delay={0.2} />
+        <Phone templateId="birthday_kids-confetti" delay={0.2} />
       </div>
     </div>
   )
