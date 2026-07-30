@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -121,25 +121,48 @@ function Phone({ templateId, delay = 0 }: { templateId: string; delay?: number }
   )
 }
 
-/** Vitrine do hero: 3 celulares flutuando (um na frente, dois atrás inclinados). */
+/** Vitrine do hero: 3 celulares (maiores) flutuando + brilhos atrás. */
 function HeroPhones() {
+  const sparkle = (s: string): CSSProperties => ({
+    animation: `invitly-float ${s} ease-in-out infinite`,
+  })
   return (
-    <div className="relative mx-auto h-[430px] w-full max-w-[440px] sm:h-[500px]">
-      {/* brilho dourado suave por trás */}
-      <div
-        aria-hidden
-        className="absolute left-1/2 top-1/2 size-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-gold/20 blur-3xl"
-      />
+    <div className="relative mx-auto h-[470px] w-full max-w-[500px] sm:h-[560px]">
+      {/* Brilhos coloridos por trás (chamam atenção) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[6%] top-[6%] size-48 rounded-full bg-brand-gold/35 blur-3xl" />
+        <div className="absolute right-[2%] top-[26%] size-52 rounded-full bg-primary/35 blur-3xl" />
+        <div className="absolute bottom-[2%] left-[20%] size-48 rounded-full bg-fuchsia-400/25 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 size-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-gold/15 blur-2xl" />
+        {/* Faíscas */}
+        <span
+          className="absolute left-[14%] top-[22%] size-1.5 rounded-full bg-white/90 blur-[1px]"
+          style={sparkle("4s")}
+        />
+        <span
+          className="absolute right-[15%] top-[14%] size-2 rounded-full bg-brand-gold blur-[1px]"
+          style={sparkle("5.2s")}
+        />
+        <span
+          className="absolute right-[22%] bottom-[16%] size-1.5 rounded-full bg-white/80 blur-[1px]"
+          style={sparkle("4.6s")}
+        />
+        <span
+          className="absolute left-[24%] bottom-[24%] size-1 rounded-full bg-brand-gold blur-[1px]"
+          style={sparkle("6s")}
+        />
+      </div>
+
       {/* traseiro esquerdo */}
-      <div className="absolute left-[1%] top-[16%] w-[39%] -rotate-[9deg]">
+      <div className="absolute left-0 top-[16%] w-[42%] -rotate-[9deg]">
         <Phone templateId="graduation-navy" delay={0.9} />
       </div>
       {/* traseiro direito */}
-      <div className="absolute right-[1%] top-[11%] w-[39%] rotate-[9deg]">
+      <div className="absolute right-0 top-[11%] w-[42%] rotate-[9deg]">
         <Phone templateId="christmas-verde" delay={1.7} />
       </div>
       {/* frontal (centro, maior) */}
-      <div className="absolute left-1/2 top-0 z-10 w-[50%] -translate-x-1/2">
+      <div className="absolute left-1/2 top-0 z-10 w-[54%] -translate-x-1/2">
         <Phone templateId="wedding-classico" delay={0.2} />
       </div>
     </div>
