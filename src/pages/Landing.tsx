@@ -345,7 +345,7 @@ function Pricing({ ctaTo }: { ctaTo: string }) {
           ctaTo={ctaTo}
           features={[
             "Convite animado completo",
-            "Galeria de fotos",
+            "Sua foto de fundo",
             "Contagem, RSVP, QR e agenda",
             "Mapa e compartilhamento",
           ]}
@@ -358,6 +358,7 @@ function Pricing({ ctaTo }: { ctaTo: string }) {
           ctaTo={ctaTo}
           features={[
             "Tudo do Básico, e mais:",
+            "Galeria de fotos",
             "Lista de presentes + PIX",
             "Música de fundo",
             "Filtros e fontes exclusivas",

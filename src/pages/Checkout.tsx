@@ -26,12 +26,13 @@ import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
 const BASIC_FEATURES = [
   "Convite animado completo",
-  "Galeria de fotos",
+  "Sua foto de fundo",
   "Contagem, RSVP, QR e agenda",
   "Mapa e compartilhamento",
 ]
 const PREMIUM_FEATURES = [
   "Tudo do Básico, mais:",
+  "Galeria de fotos",
   "Lista de presentes + PIX",
   "Música de fundo",
   "Filtros e fontes exclusivas",

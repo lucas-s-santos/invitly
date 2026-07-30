@@ -126,7 +126,7 @@ export default function PublicInvite() {
             premium={isPremium}
             className="min-h-svh pb-52"
           >
-            {opened && (gallery.length > 0 || (fields.music_url && isPremium)) ? (
+            {opened && isPremium && (gallery.length > 0 || fields.music_url) ? (
               <div className="flex flex-col items-center gap-5">
                 {gallery.length > 0 ? (
                   <GalleryCarousel
@@ -134,7 +134,7 @@ export default function PublicInvite() {
                     height={fields.gallery_height ?? 128}
                   />
                 ) : null}
-                {fields.music_url && isPremium ? (
+                {fields.music_url ? (
                   <MusicPlayer
                     active={opened}
                     url={fields.music_url}

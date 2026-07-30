@@ -1068,7 +1068,10 @@ export default function Editor() {
 
           {/* Galeria de fotos */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">📸 Galeria de fotos</p>
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              📸 Galeria de fotos
+              <PremiumBadge />
+            </p>
             {isGuest ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 📷 A galeria libera quando você criar sua conta (na hora de
