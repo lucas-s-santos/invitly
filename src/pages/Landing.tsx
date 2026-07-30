@@ -79,16 +79,15 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
   )
 }
 
-const HERO_CYCLE: { id: string; bg?: string }[] = [
-  { id: "wedding-classico", bg: "/casal.jpg" },
-  { id: "birthday_kids-confetti" },
-  { id: "halloween-abobora" },
-  { id: "christmas-verde" },
-  { id: "baby_shower-reveal" },
-  { id: "graduation-navy" },
+const HERO_CYCLE = [
+  "wedding-classico",
+  "wedding-marmore",
+  "graduation-navy",
+  "christmas-verde",
+  "halloween-abobora",
 ]
 
-function HeroPhone() {
+function HeroShowcase() {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -100,69 +99,39 @@ function HeroPhone() {
     }
     const id = setInterval(
       () => setIndex((i) => (i + 1) % HERO_CYCLE.length),
-      3500,
+      3800,
     )
     return () => clearInterval(id)
   }, [])
 
   return (
     <div className="flex justify-center">
-      <div className="relative w-[300px] [animation:invitly-float_5s_ease-in-out_infinite] sm:w-[340px]">
-        <div className="relative aspect-[1000/1500]">
-          {/* Convites (atrás) — recortados no formato exato da tela (máscara) */}
-          <div
-            className="absolute inset-0"
-            style={{
-              WebkitMaskImage: "url(/hero-phone-mask.png)",
-              maskImage: "url(/hero-phone-mask.png)",
-              WebkitMaskSize: "100% 100%",
-              maskSize: "100% 100%",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-            }}
-          >
-            {HERO_CYCLE.map((item, i) => {
-              const template = getTemplate(item.id)
-              if (!template) return null
-              const fields = item.bg
-                ? { ...template.defaultData, background_image: item.bg }
-                : template.defaultData
-              return (
-                <div
-                  key={item.id}
-                  aria-hidden={i !== index}
-                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                  style={{ opacity: i === index ? 1 : 0 }}
-                >
-                  {/* posicionado na área da tela + escala proporcional (menos zoom) */}
-                  <div
-                    className="absolute"
-                    style={{
-                      left: "21%",
-                      top: "7%",
-                      width: "56%",
-                      height: "86%",
-                    }}
-                  >
-                    <TemplatePreview
-                      template={template}
-                      fields={fields}
-                      baseW={300}
-                      baseH={690}
-                      className="h-full w-full"
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {/* Moldura do celular (na frente; a tela é transparente) */}
-          <img
-            src="/hero-phone.png"
-            alt=""
-            aria-hidden
-            className="pointer-events-none absolute inset-0 h-full w-full select-none"
-          />
+      <div className="relative w-[270px] [animation:invitly-float_6s_ease-in-out_infinite] sm:w-[310px]">
+        {/* brilho dourado suave por trás */}
+        <div
+          aria-hidden
+          className="absolute -inset-8 rounded-[3rem] bg-brand-gold/20 blur-3xl"
+        />
+        <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] shadow-2xl ring-1 ring-white/25">
+          {HERO_CYCLE.map((id, i) => {
+            const template = getTemplate(id)
+            if (!template) return null
+            return (
+              <div
+                key={id}
+                aria-hidden={i !== index}
+                className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                style={{ opacity: i === index ? 1 : 0 }}
+              >
+                <TemplatePreview
+                  template={template}
+                  baseW={300}
+                  baseH={400}
+                  className="h-full w-full"
+                />
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -171,27 +140,33 @@ function HeroPhone() {
 
 function Hero({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
-  const stats = [
-    { value: "12k+", label: t("stats.created") },
-    { value: "9", label: t("stats.events") },
-    { value: "48k+", label: t("stats.rsvps") },
-  ]
+  const title = t("hero.title")
+  const highlight = t("hero.highlight")
+  const hi = title.indexOf(highlight)
+  const before = hi >= 0 ? title.slice(0, hi) : title
+  const after = hi >= 0 ? title.slice(hi + highlight.length) : ""
 
   return (
     <section className="bg-brand-aurora relative overflow-hidden text-white">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 py-24 sm:px-6 sm:py-28 lg:grid-cols-[1.05fr_0.95fr]">
         {/* Texto */}
         <div className="text-center lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur">
             {t("hero.badge")}
           </span>
-          <h1 className="mx-auto mt-6 max-w-xl font-display text-4xl leading-tight font-black sm:text-6xl lg:mx-0">
-            {t("hero.title")}
+          <h1 className="mx-auto mt-7 max-w-xl font-display text-4xl font-bold leading-[1.12] tracking-tight sm:text-5xl lg:mx-0">
+            {before}
+            {hi >= 0 ? (
+              <em className="font-semibold text-brand-gold italic">
+                {highlight}
+              </em>
+            ) : null}
+            {after}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
+          <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-white/70 sm:text-lg lg:mx-0">
             {t("hero.subtitle")}
           </p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+          <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
             <Button asChild size="xl" className="w-full sm:w-auto">
               <Link to={ctaTo}>
                 {t("hero.ctaPrimary")}
@@ -208,21 +183,10 @@ function Hero({ ctaTo }: { ctaTo: string }) {
             </Button>
           </div>
           <p className="mt-5 text-sm text-white/55">{t("hero.trust")}</p>
-
-          <dl className="mx-auto mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/15 pt-8 lg:mx-0">
-            {stats.map((s) => (
-              <div key={s.label}>
-                <dt className="font-display text-3xl font-bold text-brand-gold">
-                  {s.value}
-                </dt>
-                <dd className="mt-1 text-xs text-white/60">{s.label}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
 
-        {/* Mockup de celular — troca de template sozinho */}
-        <HeroPhone />
+        {/* Vitrine — convite real trocando sozinho */}
+        <HeroShowcase />
       </div>
     </section>
   )
