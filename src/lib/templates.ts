@@ -421,11 +421,10 @@ const CONFIGS: CategoryConfig[] = [
   },
 ]
 
+type TplImage = { img: string; overlay: number; textDark?: boolean }
+
 /** Foto ilustrativa por categoria (fundo inicial do template). */
-const CATEGORY_IMAGE: Record<
-  string,
-  { img: string; overlay: number; textDark?: boolean }
-> = {
+const CATEGORY_IMAGE: Record<string, TplImage> = {
   wedding: { img: "/templates/wedding.jpg", overlay: 30 },
   birthday_kids: {
     img: "/templates/birthday-kids.jpg",
@@ -435,10 +434,24 @@ const CATEGORY_IMAGE: Record<
   birthday_adult: { img: "/templates/birthday-adult.jpg", overlay: 46 },
   baby_shower: { img: "/templates/baby.jpg", overlay: 10, textDark: true },
   halloween: { img: "/templates/halloween.jpg", overlay: 42 },
+  graduation: { img: "/templates/graduation.jpg", overlay: 8, textDark: true },
+  festa_junina: {
+    img: "/templates/festa-junina.jpg",
+    overlay: 8,
+    textDark: true,
+  },
+  christmas: { img: "/templates/christmas.jpg", overlay: 8, textDark: true },
+  corporate: { img: "/templates/corporate.jpg", overlay: 8, textDark: true },
+}
+
+/** Override por template específico (2ª variação com fundo diferente). */
+const TEMPLATE_IMAGE: Record<string, TplImage> = {
+  "wedding-marmore": { img: "/templates/flores.jpg", overlay: 8, textDark: true },
 }
 
 function buildTemplate(cfg: CategoryConfig, variant: Variant): Template {
-  const ci = CATEGORY_IMAGE[cfg.category]
+  const id = `${cfg.category}-${variant.suffix}`
+  const ci = TEMPLATE_IMAGE[id] ?? CATEGORY_IMAGE[cfg.category]
   const defaultData: InviteFields = ci
     ? {
         ...cfg.defaults,
@@ -449,7 +462,7 @@ function buildTemplate(cfg: CategoryConfig, variant: Variant): Template {
     : cfg.defaults
 
   return {
-    id: `${cfg.category}-${variant.suffix}`,
+    id,
     category: cfg.category,
     name: variant.name,
     thumbnail: "",
