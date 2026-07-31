@@ -38,6 +38,23 @@ const PREMIUM_FEATURES = [
   "Filtros e fontes exclusivas",
 ]
 
+/** Lista os recursos Premium que o usuário já configurou no convite. */
+function premiumFeaturesUsed(fields: InviteFields): string[] {
+  const used: string[] = []
+  if (fields.music_url?.trim()) used.push("🎵 Música")
+  if (fields.gallery && fields.gallery.length > 0) used.push("📸 Galeria")
+  if (
+    fields.pix_key?.trim() ||
+    fields.gift_url?.trim() ||
+    (fields.gift_items && fields.gift_items.some((g) => g.name.trim()))
+  )
+    used.push("🎁 Presentes/PIX")
+  if (fields.background_filter && fields.background_filter !== "none")
+    used.push("🎨 Filtro da foto")
+  if (fields.font_family) used.push("✍️ Fonte especial")
+  return used
+}
+
 export default function Checkout() {
   const { id } = useParams()
   const { user } = useAuth()
@@ -76,6 +93,8 @@ export default function Checkout() {
 
   const chosenUrl = plan === "premium" ? premiumUrl : basicUrl
   const chosenPrice = plan === "premium" ? premiumPrice : basicPrice
+  const premiumUsed = premiumFeaturesUsed(fields)
+  const showUpsell = plan === "basico" && premiumUsed.length > 0
   const configured = Boolean(chosenUrl)
 
   async function persistPlan() {
@@ -192,6 +211,28 @@ export default function Checkout() {
                     {chosenPrice}
                   </span>
                 </div>
+
+                {showUpsell ? (
+                  <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">
+                    <p className="text-sm font-semibold">
+                      ⭐ Você adicionou recursos Premium
+                    </p>
+                    <p className="mt-1 text-xs">{premiumUsed.join(" · ")}</p>
+                    <p className="mt-2 text-xs leading-relaxed">
+                      No plano <strong>Básico</strong> eles{" "}
+                      <strong>não vão aparecer</strong> no convite. Publique como
+                      Premium para liberar tudo.
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-2.5 w-full"
+                      onClick={() => setPlan("premium")}
+                    >
+                      <Crown className="size-4" />
+                      Mudar para Premium ({premiumPrice})
+                    </Button>
+                  </div>
+                ) : null}
 
                 {isAdmin ? (
                   <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
