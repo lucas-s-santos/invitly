@@ -15,6 +15,7 @@ export const CATEGORY_BACKGROUNDS: Record<string, BgOption[]> = {
   ],
   birthday_adult: [
     { img: "/templates/birthday-adult.jpg", overlay: 46 },
+    { img: "/templates/birthday-adult-2.jpg", overlay: 40 },
     { img: "/templates/aniversario-2.jpg", overlay: 10, textDark: true },
   ],
   baby_shower: [
@@ -34,7 +35,10 @@ export const CATEGORY_BACKGROUNDS: Record<string, BgOption[]> = {
     { img: "/templates/festa-junina.jpg", overlay: 8, textDark: true },
     { img: "/templates/junina-2.jpg", overlay: 10, textDark: true },
   ],
-  halloween: [{ img: "/templates/halloween.jpg", overlay: 42 }],
+  halloween: [
+    { img: "/templates/halloween.jpg", overlay: 42 },
+    { img: "/templates/halloween-2.jpg", overlay: 40 },
+  ],
   corporate: [{ img: "/templates/corporate.jpg", overlay: 8, textDark: true }],
 }
 
