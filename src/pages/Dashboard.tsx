@@ -31,6 +31,7 @@ import type { Invite, InviteFields, InviteStatus } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TemplatePreview } from "@/components/invite/TemplatePreview"
 import { LanguageToggle } from "@/components/LanguageToggle"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { BrandMark } from "@/components/BrandMark"
@@ -217,28 +218,19 @@ function InviteCard({
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
-      <div
-        className="relative flex aspect-[16/10] flex-col items-center justify-center gap-1 px-4 text-center"
-        style={{
-          background: template?.style.background ?? "#1a0533",
-          color: template?.style.textColor ?? "#fff",
-        }}
-      >
-        <span className="text-3xl" aria-hidden>
-          {template?.style.motif}
-        </span>
-        <span
-          className="font-display text-base leading-tight font-bold"
-          style={{
-            fontFamily: template?.style.fontDisplay,
-            color: template?.style.accentColor,
-          }}
-        >
-          {fields.title}
-        </span>
+      <div className="relative aspect-[16/10] overflow-hidden bg-secondary">
+        {template ? (
+          <TemplatePreview
+            template={template}
+            fields={fields}
+            baseW={480}
+            baseH={300}
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : null}
         <span
           className={cn(
-            "absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold",
+            "absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm",
             status.className,
           )}
         >
