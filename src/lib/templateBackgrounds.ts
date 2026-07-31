@@ -28,9 +28,11 @@ export const CATEGORY_BACKGROUNDS: Record<string, BgOption[]> = {
   christmas: [
     { img: "/templates/christmas.jpg", overlay: 8, textDark: true },
     { img: "/templates/natal-2.jpg", overlay: 10, textDark: true },
+    { img: "/templates/natal-3.jpg", overlay: 10, textDark: true },
   ],
   festa_junina: [
     { img: "/templates/festa-junina.jpg", overlay: 8, textDark: true },
+    { img: "/templates/junina-2.jpg", overlay: 10, textDark: true },
   ],
   halloween: [{ img: "/templates/halloween.jpg", overlay: 42 }],
   corporate: [{ img: "/templates/corporate.jpg", overlay: 8, textDark: true }],
