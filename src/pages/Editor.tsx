@@ -31,6 +31,7 @@ import { getTemplate, getTemplatesByCategory } from "@/lib/templates"
 import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
 import { FONT_OPTIONS } from "@/lib/fonts"
+import { backgroundsForCategory, type BgOption } from "@/lib/templateBackgrounds"
 import {
   clearGuestDraft,
   loadGuestDraft,
@@ -180,6 +181,19 @@ export default function Editor() {
     dirtyRef.current = true
     touchedRef.current = true
     setFields((prev) => (prev ? { ...prev, ...p } : prev))
+  }
+
+  /** Aplica um fundo pronto (reseta ajustes p/ ficar limpo). */
+  function applyBackground(bg: BgOption) {
+    patch({
+      background_image: bg.img,
+      background_overlay: bg.overlay,
+      text_mode: bg.textDark ? "dark" : undefined,
+      background_position: undefined,
+      background_zoom: undefined,
+      background_blur: undefined,
+      background_filter: undefined,
+    })
   }
 
   function switchTemplate(tpl: Template) {
@@ -625,6 +639,39 @@ export default function Editor() {
           {/* Foto de fundo */}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">Foto de fundo</p>
+
+            {/* Fundos prontos da ocasião */}
+            {backgroundsForCategory(template.category).length > 1 ? (
+              <div className="mt-3">
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  Fundos prontos
+                </p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {backgroundsForCategory(template.category).map((bg) => (
+                    <button
+                      key={bg.img}
+                      type="button"
+                      onClick={() => applyBackground(bg)}
+                      aria-label="Usar este fundo"
+                      className={cn(
+                        "h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
+                        fields.background_image === bg.img
+                          ? "border-primary ring-2 ring-primary/30"
+                          : "border-transparent",
+                      )}
+                    >
+                      <img
+                        src={bg.img}
+                        alt=""
+                        aria-hidden
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             {fields.background_image ? (
               <div className="mt-3 space-y-2">
                 <img
