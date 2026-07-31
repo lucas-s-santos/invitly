@@ -27,7 +27,7 @@ import {
   useUpdateInvite,
 } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
-import { getTemplate, TEMPLATES } from "@/lib/templates"
+import { getTemplate, getTemplatesByCategory } from "@/lib/templates"
 import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
 import { FONT_OPTIONS } from "@/lib/fonts"
@@ -494,14 +494,14 @@ export default function Editor() {
             </div>
           ) : null}
 
-          {/* Trocar modelo (visual) — mantém o conteúdo */}
+          {/* Trocar o estilo do modelo (variações da mesma ocasião) */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">Modelo do convite</p>
+            <p className="text-sm font-semibold">Estilo do modelo</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Toque para trocar o visual — seu conteúdo é mantido.
             </p>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              {TEMPLATES.map((tpl) => (
+              {getTemplatesByCategory(template.category).map((tpl) => (
                 <button
                   key={tpl.id}
                   type="button"
