@@ -540,6 +540,40 @@ export default function Editor() {
             </div>
           </div>
 
+          {/* Fundo do convite — fundos prontos da ocasião */}
+          {backgroundsForCategory(template.category).length > 1 ? (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-semibold">Fundo do convite</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Escolha um fundo pronto da ocasião — ou suba o seu na seção
+                “Foto de fundo”.
+              </p>
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                {backgroundsForCategory(template.category).map((bg) => (
+                  <button
+                    key={bg.img}
+                    type="button"
+                    onClick={() => applyBackground(bg)}
+                    aria-label="Usar este fundo"
+                    className={cn(
+                      "h-20 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
+                      fields.background_image === bg.img
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-transparent",
+                    )}
+                  >
+                    <img
+                      src={bg.img}
+                      alt=""
+                      aria-hidden
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <Field label="Título do evento" hint={`${fields.title.length}/80`}>
             <Input
               placeholder="Ex: Nosso Casamento"
@@ -639,39 +673,6 @@ export default function Editor() {
           {/* Foto de fundo */}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold">Foto de fundo</p>
-
-            {/* Fundos prontos da ocasião */}
-            {backgroundsForCategory(template.category).length > 1 ? (
-              <div className="mt-3">
-                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
-                  Fundos prontos
-                </p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {backgroundsForCategory(template.category).map((bg) => (
-                    <button
-                      key={bg.img}
-                      type="button"
-                      onClick={() => applyBackground(bg)}
-                      aria-label="Usar este fundo"
-                      className={cn(
-                        "h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
-                        fields.background_image === bg.img
-                          ? "border-primary ring-2 ring-primary/30"
-                          : "border-transparent",
-                      )}
-                    >
-                      <img
-                        src={bg.img}
-                        alt=""
-                        aria-hidden
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             {fields.background_image ? (
               <div className="mt-3 space-y-2">
                 <img
