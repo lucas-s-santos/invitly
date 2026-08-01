@@ -39,7 +39,10 @@ export const CATEGORY_BACKGROUNDS: Record<string, BgOption[]> = {
     { img: "/templates/halloween.jpg", overlay: 42 },
     { img: "/templates/halloween-2.jpg", overlay: 40 },
   ],
-  corporate: [{ img: "/templates/corporate.jpg", overlay: 8, textDark: true }],
+  corporate: [
+    { img: "/templates/corporate.jpg", overlay: 8, textDark: true },
+    { img: "/templates/corporate-2.jpg", overlay: 8, textDark: true },
+  ],
 }
 
 export function backgroundsForCategory(category: string): BgOption[] {
