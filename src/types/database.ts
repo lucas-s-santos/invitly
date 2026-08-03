@@ -48,10 +48,18 @@ export type InviteFields = {
   // ── Estilo do texto / entrada ──
   /** Tamanho do título. */
   title_size?: "sm" | "md" | "lg"
-  /** Fonte do título (valor CSS de font-family). */
+  /** Fonte do texto (valor CSS de font-family) — aplica no convite todo. */
   font_family?: string
   /** Animação de entrada do conteúdo. */
   entrance?: "fade" | "up" | "zoom" | "down"
+  /** Cor livre do texto (hex). Sobrepõe o modo automático/claro/escuro. */
+  text_color?: string
+  /** Tamanho do texto da mensagem. */
+  message_size?: "sm" | "md" | "lg"
+  /** Alinhamento do conteúdo. */
+  text_align?: "left" | "center"
+  /** Emoji decorativo ("" = nenhum; ausente = padrão do modelo). */
+  motif?: string
 
   // ── Extras do convite (opcionais) ──
   /** Link do mapa (Google Maps/Waze). Se vazio, gera busca a partir de `location`. */

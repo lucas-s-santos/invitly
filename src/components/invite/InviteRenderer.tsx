@@ -42,17 +42,20 @@ export function InviteRenderer({
 
   const bgImage = fields.background_image
   const isDarkText = fields.text_mode === "dark"
-  // text_mode explícito vence; senão foto = texto claro; senão o do tema.
+  const custom = fields.text_color
+  // cor livre vence; senão text_mode; senão foto = claro; senão o do tema.
   const textColor =
-    fields.text_mode === "light"
+    custom ??
+    (fields.text_mode === "light"
       ? "#ffffff"
       : isDarkText
         ? "#1a0533"
         : bgImage
           ? "#ffffff"
-          : style.textColor
-  const mutedColor =
-    fields.text_mode === "light"
+          : style.textColor)
+  const mutedColor = custom
+    ? withAlpha(custom, 0.72)
+    : fields.text_mode === "light"
       ? "rgba(255,255,255,0.72)"
       : isDarkText
         ? "rgba(26,5,51,0.65)"
@@ -104,14 +107,30 @@ export function InviteRenderer({
         ? "text-5xl sm:text-6xl"
         : "text-4xl sm:text-5xl"
 
+  // Fonte escolhida (premium) aplica no convite todo
+  const chosenFont =
+    premium && fields.font_family ? fields.font_family : undefined
+  // Tamanho da mensagem
+  const msgSize = preview
+    ? "line-clamp-3 text-sm"
+    : fields.message_size === "sm"
+      ? "text-sm"
+      : fields.message_size === "lg"
+        ? "text-lg"
+        : "text-base"
+  const alignLeft = fields.text_align === "left"
+  // Emoji decorativo: "" = nenhum; ausente = padrão do modelo
+  const motif = fields.motif !== undefined ? fields.motif : style.motif
+
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center justify-center overflow-hidden text-center",
+        "relative flex w-full flex-col justify-center overflow-hidden",
+        alignLeft ? "items-start text-left" : "items-center text-center",
         preview ? "px-6 py-8" : "px-8 py-12",
         className,
       )}
-      style={{ background, color: textColor }}
+      style={{ background, color: textColor, fontFamily: chosenFont }}
     >
       {bgImage ? (
         <>
@@ -134,18 +153,19 @@ export function InviteRenderer({
             }}
           />
         </>
-      ) : style.motif ? (
+      ) : motif ? (
         <div
           aria-hidden
           className="pointer-events-none absolute -top-6 right-6 text-[120px] leading-none opacity-10 select-none"
         >
-          {style.motif}
+          {motif}
         </div>
       ) : null}
 
       <div
         className={cn(
-          "relative flex w-full max-w-md flex-col items-center",
+          "relative flex w-full max-w-md flex-col",
+          alignLeft ? "items-start" : "items-center",
           preview ? "gap-3" : "gap-5",
         )}
         style={
@@ -158,9 +178,9 @@ export function InviteRenderer({
             : undefined
         }
       >
-        {style.motif && !preview ? (
+        {motif && !preview ? (
           <div className={cn("text-4xl", anim)} style={delay(0)} aria-hidden>
-            {style.motif}
+            {motif}
           </div>
         ) : null}
 
@@ -185,8 +205,7 @@ export function InviteRenderer({
           )}
           lang="pt-BR"
           style={{
-            fontFamily:
-              (premium && fields.font_family) || style.fontDisplay,
+            fontFamily: chosenFont ?? style.fontDisplay,
             ...delay(200),
           }}
         >
@@ -220,11 +239,7 @@ export function InviteRenderer({
 
         {fields.message ? (
           <p
-            className={cn(
-              "leading-relaxed italic opacity-90",
-              preview ? "line-clamp-3 text-sm" : "text-base",
-              anim,
-            )}
+            className={cn("leading-relaxed italic opacity-90", msgSize, anim)}
             style={delay(450)}
           >
             {fields.message}
@@ -247,4 +262,15 @@ export function InviteRenderer({
       ) : null}
     </div>
   )
+}
+
+/** Converte um hex (#rgb ou #rrggbb) em rgba com a opacidade dada. */
+function withAlpha(hex: string, a: number): string {
+  const h = hex.replace("#", "")
+  const full = h.length === 3 ? h.replace(/(.)/g, "$1$1") : h
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  if ([r, g, b].some(Number.isNaN)) return hex
+  return `rgba(${r}, ${g}, ${b}, ${a})`
 }

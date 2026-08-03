@@ -803,6 +803,28 @@ export default function Editor() {
                   </button>
                 ))}
               </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  type="color"
+                  value={fields.text_color ?? "#1a0533"}
+                  onChange={(e) => set("text_color", e.target.value)}
+                  className="size-8 cursor-pointer rounded-md border border-border bg-transparent"
+                  aria-label="Cor personalizada do texto"
+                />
+                <span className="text-xs text-muted-foreground">
+                  Cor personalizada
+                </span>
+                {fields.text_color ? (
+                  <button
+                    type="button"
+                    onClick={() => set("text_color", undefined)}
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    resetar
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -811,7 +833,7 @@ export default function Editor() {
             <p className="text-sm font-semibold">✨ Estilo & animação</p>
 
             <p className="mb-1.5 mt-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              Fonte do título
+              Fonte do texto
               <PremiumBadge />
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -891,6 +913,119 @@ export default function Editor() {
                   {opt.label}
                 </button>
               ))}
+            </div>
+
+            <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+              Tamanho da mensagem
+            </p>
+            <div className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+              {(
+                [
+                  { v: "sm", label: "Pequeno" },
+                  { v: undefined, label: "Médio" },
+                  { v: "lg", label: "Grande" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => set("message_size", opt.v)}
+                  className={cn(
+                    "rounded-md px-3 py-1 transition-colors",
+                    (fields.message_size ?? undefined) === opt.v
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+              Alinhamento
+            </p>
+            <div className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+              {(
+                [
+                  { v: undefined, label: "Centro" },
+                  { v: "left", label: "Esquerda" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => set("text_align", opt.v)}
+                  className={cn(
+                    "rounded-md px-3 py-1 transition-colors",
+                    (fields.text_align ?? undefined) === opt.v
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+              Emoji decorativo
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "❤️",
+                "🤍",
+                "🎉",
+                "🎂",
+                "🎈",
+                "🥂",
+                "🎓",
+                "👶",
+                "🌽",
+                "🎃",
+                "🎄",
+                "✨",
+                "💐",
+                "🥳",
+              ].map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => set("motif", e)}
+                  className={cn(
+                    "flex size-8 items-center justify-center rounded-lg border text-lg",
+                    fields.motif === e
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:border-primary/50",
+                  )}
+                >
+                  {e}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => set("motif", "")}
+                className={cn(
+                  "flex h-8 items-center justify-center rounded-lg border px-2 text-xs",
+                  fields.motif === ""
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                Nenhum
+              </button>
+              <button
+                type="button"
+                onClick={() => set("motif", undefined)}
+                className={cn(
+                  "flex h-8 items-center justify-center rounded-lg border px-2 text-xs",
+                  fields.motif === undefined
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                Padrão
+              </button>
             </div>
           </div>
 
