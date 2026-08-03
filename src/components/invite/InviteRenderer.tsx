@@ -130,7 +130,7 @@ export function InviteRenderer({
         preview ? "px-6 py-8" : "px-8 py-12",
         className,
       )}
-      style={{ background, color: textColor, fontFamily: chosenFont }}
+      style={{ background, color: textColor }}
     >
       {bgImage ? (
         <>

@@ -833,7 +833,7 @@ export default function Editor() {
             <p className="text-sm font-semibold">✨ Estilo & animação</p>
 
             <p className="mb-1.5 mt-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              Fonte do texto
+              Fonte do título
               <PremiumBadge />
             </p>
             <div className="grid grid-cols-2 gap-2">
