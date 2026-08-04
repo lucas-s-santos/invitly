@@ -3,17 +3,20 @@ import { Music, Pause, Play, Volume1, Volume2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-/** Volume inicial (o usuário pode subir no slider). */
-const DEFAULT_VOLUME = 0.55
-/** Tempo do fade-in ao abrir o convite (ms) — entra suave, sem susto. */
-const FADE_AUTOPLAY_MS = 3500
+/**
+ * Volume inicial: sempre o mínimo audível. Ninguém leva susto ao abrir o
+ * convite — quem quiser ouvir mais alto sobe no slider.
+ */
+const DEFAULT_VOLUME = 0.05
+/** Tempo do fade-in ao abrir o convite (ms) — entra sem estalo. */
+const FADE_AUTOPLAY_MS = 1800
 /** Fade mais curto quando a pessoa aperta o play. */
-const FADE_MANUAL_MS = 900
+const FADE_MANUAL_MS = 600
 
 /**
  * Player de música do convite. Começa a tocar quando `active` vira true
- * (o gesto de abrir o convite libera o autoplay), sempre subindo o volume
- * do zero aos poucos para não assustar quem abre o convite.
+ * (o gesto de abrir o convite libera o autoplay), sempre no volume mínimo
+ * e subindo do zero aos poucos para não assustar quem abre o convite.
  *
  * - Com título/artista: card estilo Spotify (capa girando + info + progresso).
  * - Sem título nem artista: modo minimalista e elegante — só play/pause e volume,
@@ -218,6 +221,25 @@ export function MusicPlayer({
           className="mt-1.5 h-1 w-full cursor-pointer"
           style={{ accentColor: accent }}
         />
+        {/* volume: começa no mínimo, quem quiser sobe aqui */}
+        <div className="mt-1 flex items-center gap-1.5">
+          {volume < 0.5 ? (
+            <Volume1 className="size-3.5 shrink-0 text-white/70" aria-hidden />
+          ) : (
+            <Volume2 className="size-3.5 shrink-0 text-white/70" aria-hidden />
+          )}
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={(e) => changeVolume(Number(e.target.value))}
+            aria-label="Volume"
+            className="h-1 flex-1 cursor-pointer"
+            style={{ accentColor: accent }}
+          />
+        </div>
       </div>
 
       {playButton}
