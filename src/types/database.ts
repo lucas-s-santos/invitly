@@ -127,6 +127,10 @@ export type InviteView = {
 }
 
 // ── Painel do administrador ──
+/**
+ * Campos extras (7 dias, séries, planos) vêm da migration 0005 — são
+ * opcionais para o painel continuar funcionando antes de rodá-la.
+ */
 export type AdminStats = {
   invites: number
   published: number
@@ -134,6 +138,18 @@ export type AdminStats = {
   rsvps: number
   views: number
   users: number
+  invites_7d?: number
+  published_7d?: number
+  rsvps_7d?: number
+  users_7d?: number
+  views_7d?: number
+  guests?: number
+  premium?: number
+  basico?: number
+  by_status?: { status: InviteStatus; n: number }[]
+  by_category?: { category: string; n: number }[]
+  series?: { label: string; invites: number; rsvps: number; views: number }[]
+  top?: { title: string; slug: string; views: number; rsvps: number }[]
 }
 export type AdminInviteRow = {
   id: string
@@ -143,12 +159,19 @@ export type AdminInviteRow = {
   views: number
   created_at: string
   owner_email: string | null
+  /** migration 0005 */
+  category?: string
+  plan?: InvitePlan
+  rsvps?: number
 }
 export type AdminUserRow = {
   id: string
   email: string | null
   created_at: string
   invites: number
+  /** migration 0005 */
+  last_sign_in_at?: string | null
+  published?: number
 }
 
 type InsertOf<T, Optional extends keyof T> = Omit<T, Optional> &
