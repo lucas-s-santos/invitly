@@ -159,7 +159,11 @@ export default function PublicInvite() {
             ) : null}
           </InviteRenderer>
           {opened ? (
-            <InviteEffects template={template} replayKey={replay} />
+            <InviteEffects
+              template={template}
+              fields={fields}
+              replayKey={replay}
+            />
           ) : null}
         </>
       ) : null}
