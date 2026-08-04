@@ -119,6 +119,24 @@ export function InviteRenderer({
         ? "text-lg"
         : "text-base"
   const alignLeft = fields.text_align === "left"
+  // Fundo atrás do texto: ausente = automático (sombra só quando há foto)
+  const backdrop = fields.text_backdrop ?? (bgImage ? "shadow" : "none")
+  const boxStyle: CSSProperties =
+    backdrop === "box"
+      ? {
+          backgroundColor: isDarkText
+            ? "rgba(255,255,255,0.55)"
+            : "rgba(0,0,0,0.38)",
+        }
+      : {}
+  const shadowStyle: CSSProperties =
+    backdrop === "shadow"
+      ? {
+          textShadow: isDarkText
+            ? "0 1px 12px rgba(255,255,255,0.65)"
+            : "0 1px 14px rgba(0,0,0,0.55)",
+        }
+      : {}
   // Emoji decorativo: "" = nenhum; ausente = padrão do modelo
   const motif = fields.motif !== undefined ? fields.motif : style.motif
 
@@ -167,16 +185,12 @@ export function InviteRenderer({
           "relative flex w-full max-w-md flex-col",
           alignLeft ? "items-start" : "items-center",
           preview ? "gap-3" : "gap-5",
+          backdrop === "box" &&
+            (preview
+              ? "rounded-xl px-4 py-4 backdrop-blur-[2px]"
+              : "rounded-2xl px-6 py-7 backdrop-blur-[2px]"),
         )}
-        style={
-          bgImage
-            ? {
-                textShadow: isDarkText
-                  ? "0 1px 12px rgba(255,255,255,0.65)"
-                  : "0 1px 14px rgba(0,0,0,0.55)",
-              }
-            : undefined
-        }
+        style={{ ...shadowStyle, ...boxStyle }}
       >
         {motif && !preview ? (
           <div className={cn("text-4xl", anim)} style={delay(0)} aria-hidden>

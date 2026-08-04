@@ -58,6 +58,11 @@ export type InviteFields = {
   message_size?: "sm" | "md" | "lg"
   /** Alinhamento do conteúdo. */
   text_align?: "left" | "center"
+  /**
+   * Fundo atrás do texto p/ leitura. "shadow" = sombra suave (padrão quando há
+   * foto), "box" = caixa translúcida, "none" = nada. Ausente = automático.
+   */
+  text_backdrop?: "none" | "shadow" | "box"
   /** Emoji decorativo ("" = nenhum; ausente = padrão do modelo). */
   motif?: string
 

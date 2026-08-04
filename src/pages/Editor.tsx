@@ -825,6 +825,38 @@ export default function Editor() {
                   </button>
                 ) : null}
               </div>
+
+              <p className="mb-1.5 mt-4 text-xs font-medium text-muted-foreground">
+                Fundo atrás do texto
+              </p>
+              <div className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+                {(
+                  [
+                    { v: undefined, label: "Auto" },
+                    { v: "none", label: "Nenhum" },
+                    { v: "shadow", label: "Sombra" },
+                    { v: "box", label: "Caixa" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => set("text_backdrop", opt.v)}
+                    className={cn(
+                      "rounded-md px-3 py-1 transition-colors",
+                      fields.text_backdrop === opt.v
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                Use “Nenhum” quando a foto de fundo já for limpa — a sombra some
+                e a letra fica lisa.
+              </p>
             </div>
           </div>
 
