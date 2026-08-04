@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
   ClipboardList,
@@ -20,10 +20,16 @@ import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { isAdminEmail } from "@/lib/admin"
 import {
+  useCreateInvite,
   useDeleteInvite,
   useDuplicateInvite,
   useMyInvites,
 } from "@/hooks/useInvites"
+import {
+  clearGuestDraft,
+  hasPublishIntent,
+  loadGuestDraft,
+} from "@/lib/guestDraft"
 import { useMyRsvpSummary, type RsvpSummary } from "@/hooks/useRsvp"
 import { getTemplate } from "@/lib/templates"
 import { cn } from "@/lib/utils"
@@ -57,6 +63,38 @@ export default function Dashboard() {
   const { data: invites, isLoading, isError } = useMyInvites()
   const { data: rsvpSummary } = useMyRsvpSummary()
   const [filter, setFilter] = useState<"all" | InviteStatus>("all")
+  const navigate = useNavigate()
+  const createInvite = useCreateInvite()
+  // Rascunho montado sem conta (fica no navegador) — não pode se perder.
+  // Com intenção de publicar quem cuida é o GuestPublishResumer.
+  const [draft, setDraft] = useState(() =>
+    hasPublishIntent() ? null : loadGuestDraft(),
+  )
+
+  function recoverDraft() {
+    if (!draft) return
+    createInvite.mutate(
+      {
+        templateId: draft.templateId,
+        category: draft.category,
+        fields: draft.fields,
+      },
+      {
+        onSuccess: (inv) => {
+          clearGuestDraft()
+          setDraft(null)
+          toast.success("Convite salvo na sua conta!")
+          navigate(`/editor/${inv.id}`)
+        },
+        onError: () => toast.error("Não foi possível salvar o convite."),
+      },
+    )
+  }
+
+  function discardDraft() {
+    clearGuestDraft()
+    setDraft(null)
+  }
 
   const displayName =
     (user?.user_metadata?.name as string | undefined) ||
@@ -115,6 +153,33 @@ export default function Dashboard() {
             </Link>
           </Button>
         </div>
+
+        {/* Rascunho feito antes de entrar na conta */}
+        {draft ? (
+          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-primary">
+                ✨ Você tem um convite feito sem conta
+              </p>
+              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                “{draft.fields.title}” está salvo só neste navegador. Traga ele
+                pra sua conta antes que se perca.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={recoverDraft}
+                disabled={createInvite.isPending}
+              >
+                Recuperar convite
+              </Button>
+              <Button size="sm" variant="ghost" onClick={discardDraft}>
+                Descartar
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         {/* Filtros */}
         {invites && invites.length > 0 ? (
