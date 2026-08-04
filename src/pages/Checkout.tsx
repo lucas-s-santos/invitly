@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { isAdminEmail } from "@/lib/admin"
 import { getTemplate } from "@/lib/templates"
 import { formatLongDate } from "@/lib/date"
+import { premiumFeaturesUsed } from "@/lib/plans"
 import type { InviteFields, InvitePlan } from "@/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -38,23 +39,6 @@ const PREMIUM_FEATURES = [
   "Filtros e fontes exclusivas",
 ]
 
-/** Lista os recursos Premium que o usuário já configurou no convite. */
-function premiumFeaturesUsed(fields: InviteFields): string[] {
-  const used: string[] = []
-  if (fields.music_url?.trim()) used.push("🎵 Música")
-  if (fields.gallery && fields.gallery.length > 0) used.push("📸 Galeria")
-  if (
-    fields.pix_key?.trim() ||
-    fields.gift_url?.trim() ||
-    (fields.gift_items && fields.gift_items.some((g) => g.name.trim()))
-  )
-    used.push("🎁 Presentes/PIX")
-  if (fields.background_filter && fields.background_filter !== "none")
-    used.push("🎨 Filtro da foto")
-  if (fields.font_family) used.push("✍️ Fonte especial")
-  return used
-}
-
 export default function Checkout() {
   const { id } = useParams()
   const { user } = useAuth()
@@ -63,11 +47,16 @@ export default function Checkout() {
   const update = useUpdateInvite()
   const [redirecting, setRedirecting] = useState(false)
   const [plan, setPlan] = useState<InvitePlan>("basico")
+  const planInitRef = useRef(false)
   const isAdmin = isAdminEmail(user?.email)
 
+  // Marca o plano uma única vez, quando o convite carrega: se a pessoa
+  // configurou recursos Premium no editor, o Premium já vem selecionado.
   useEffect(() => {
-    const p = (invite?.data as InviteFields | undefined)?.plan
-    if (p) setPlan(p)
+    const f = invite?.data as InviteFields | undefined
+    if (!f || planInitRef.current) return
+    planInitRef.current = true
+    setPlan(premiumFeaturesUsed(f).length > 0 ? "premium" : (f.plan ?? "basico"))
   }, [invite])
 
   const basicUrl = import.meta.env.VITE_KIWIFY_CHECKOUT_URL
@@ -148,6 +137,22 @@ export default function Checkout() {
               : "Publique para liberar o link e receber confirmações."}
           </p>
 
+          {!isPublished && premiumUsed.length > 0 ? (
+            <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              <p className="flex items-center gap-1.5 text-sm font-semibold">
+                <Crown className="size-4 text-amber-600" />
+                Seu convite usa recursos Premium
+              </p>
+              <p className="mt-1.5 text-sm">{premiumUsed.join(" · ")}</p>
+              <p className="mt-2 text-xs leading-relaxed">
+                Por isso o <strong>Premium ({premiumPrice})</strong> já vem
+                selecionado — é o plano que faz esses itens aparecerem no
+                convite. Quer pagar o Básico ({basicPrice})? Dá, mas esses itens
+                não vão aparecer.
+              </p>
+            </div>
+          ) : null}
+
           {isPublished ? (
             <Card className="mt-6">
               <CardContent className="space-y-3 pt-6">
@@ -170,6 +175,11 @@ export default function Checkout() {
                 title="Básico"
                 price={basicPrice}
                 features={BASIC_FEATURES}
+                note={
+                  premiumUsed.length > 0
+                    ? `Sem ${premiumUsed.join(", ")} no convite`
+                    : undefined
+                }
               />
               <PlanCard
                 active={plan === "premium"}
@@ -178,6 +188,11 @@ export default function Checkout() {
                 price={premiumPrice}
                 features={PREMIUM_FEATURES}
                 premium
+                note={
+                  premiumUsed.length > 0
+                    ? "Necessário pro que você montou"
+                    : undefined
+                }
               />
             </div>
           )}
@@ -313,6 +328,7 @@ function PlanCard({
   price,
   features,
   premium = false,
+  note,
 }: {
   active: boolean
   onClick: () => void
@@ -320,6 +336,8 @@ function PlanCard({
   price: string
   features: string[]
   premium?: boolean
+  /** Aviso curto ligado ao que a pessoa montou no editor. */
+  note?: string
 }) {
   return (
     <button
@@ -339,6 +357,17 @@ function PlanCard({
         </span>
         <span className="font-display text-xl font-bold">{price}</span>
       </div>
+      {note ? (
+        <p
+          className={cn(
+            "mt-1 text-xs font-medium",
+            premium ? "text-amber-700" : "text-muted-foreground",
+          )}
+        >
+          {premium ? "⭐ " : "⚠️ "}
+          {note}
+        </p>
+      ) : null}
       <ul className="mt-3 space-y-1.5">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">

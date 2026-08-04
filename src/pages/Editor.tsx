@@ -31,6 +31,7 @@ import { getTemplate, getTemplatesByCategory } from "@/lib/templates"
 import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
 import { compressImageToDataUrl } from "@/lib/image"
 import { FONT_OPTIONS } from "@/lib/fonts"
+import { PREMIUM_PRICE, premiumFeaturesUsed } from "@/lib/plans"
 import { backgroundsForCategory, type BgOption } from "@/lib/templateBackgrounds"
 import {
   clearGuestDraft,
@@ -166,6 +167,7 @@ export default function Editor() {
   if (!template || !fields) return <FullScreenLoader />
 
   const isPublished = !isGuest && invite?.status === "published"
+  const premiumUsed = premiumFeaturesUsed(fields)
   const publicUrl =
     !isGuest && invite
       ? `${import.meta.env.VITE_APP_URL || window.location.origin}/convite/${invite.slug}`
@@ -476,6 +478,26 @@ export default function Editor() {
                 Você só cria a conta na hora de <strong>publicar</strong>.
               </p>
             </div>
+          ) : null}
+
+          {!isPublished ? (
+            premiumUsed.length > 0 ? (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                <p className="font-semibold">⭐ Você usou recursos Premium</p>
+                <p className="mt-1">{premiumUsed.join(" · ")}</p>
+                <p className="mt-1.5 text-xs leading-relaxed">
+                  Pode montar tudo à vontade. Na hora de <strong>publicar</strong>,
+                  o plano <strong>Premium ({PREMIUM_PRICE})</strong> já vem
+                  marcado — é ele que faz esses itens aparecerem no convite.
+                </p>
+              </div>
+            ) : (
+              <p className="rounded-xl border border-border bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+                ⭐ <strong className="text-foreground">Premium</strong>: use à
+                vontade agora — nada é bloqueado aqui. O plano e o valor só
+                aparecem na hora de publicar.
+              </p>
+            )
           ) : null}
 
           {isPublished ? (
@@ -1439,7 +1461,10 @@ export default function Editor() {
 
 function PremiumBadge() {
   return (
-    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+    <span
+      title="Pode usar agora — o plano Premium só é escolhido (e pago) na hora de publicar."
+      className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
+    >
       ⭐ Premium
     </span>
   )
