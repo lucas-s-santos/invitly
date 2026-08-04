@@ -3,9 +3,17 @@ import { Music, Pause, Play, Volume1, Volume2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/** Volume inicial (o usuário pode subir no slider). */
+const DEFAULT_VOLUME = 0.55
+/** Tempo do fade-in ao abrir o convite (ms) — entra suave, sem susto. */
+const FADE_AUTOPLAY_MS = 3500
+/** Fade mais curto quando a pessoa aperta o play. */
+const FADE_MANUAL_MS = 900
+
 /**
  * Player de música do convite. Começa a tocar quando `active` vira true
- * (o gesto de abrir o convite libera o autoplay).
+ * (o gesto de abrir o convite libera o autoplay), sempre subindo o volume
+ * do zero aos poucos para não assustar quem abre o convite.
  *
  * - Com título/artista: card estilo Spotify (capa girando + info + progresso).
  * - Sem título nem artista: modo minimalista e elegante — só play/pause e volume,
@@ -27,36 +35,70 @@ export function MusicPlayer({
   accent?: string
 }) {
   const ref = useRef<HTMLAudioElement>(null)
+  const fadeRef = useRef<number | null>(null)
+  const volumeRef = useRef(DEFAULT_VOLUME)
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [volume, setVolume] = useState(0.6)
+  const [volume, setVolume] = useState(DEFAULT_VOLUME)
 
   const minimal = !title?.trim() && !artist?.trim()
+
+  function stopFade() {
+    if (fadeRef.current !== null) {
+      window.clearInterval(fadeRef.current)
+      fadeRef.current = null
+    }
+  }
+
+  /** Sobe o volume de 0 até o alvo aos poucos. */
+  function fadeIn(el: HTMLAudioElement, ms: number) {
+    stopFade()
+    const step = 60
+    let elapsed = 0
+    el.volume = 0
+    fadeRef.current = window.setInterval(() => {
+      elapsed += step
+      const target = volumeRef.current
+      el.volume = Math.min(target, (elapsed / ms) * target)
+      if (elapsed >= ms) stopFade()
+    }, step)
+  }
+
+  function playWithFade(el: HTMLAudioElement, ms: number) {
+    el.volume = 0
+    el.play()
+      .then(() => {
+        setPlaying(true)
+        fadeIn(el, ms)
+      })
+      .catch(() => setPlaying(false))
+  }
 
   useEffect(() => {
     if (!active) return
     const el = ref.current
     if (!el) return
-    el.volume = volume
-    el.play()
-      .then(() => setPlaying(true))
-      .catch(() => setPlaying(false))
+    playWithFade(el, FADE_AUTOPLAY_MS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  useEffect(() => {
-    const el = ref.current
-    if (el) el.volume = volume
-  }, [volume])
+  useEffect(() => stopFade, [])
+
+  /** Slider do volume: corta o fade e aplica na hora. */
+  function changeVolume(v: number) {
+    volumeRef.current = v
+    setVolume(v)
+    stopFade()
+    if (ref.current) ref.current.volume = v
+  }
 
   function toggle() {
     const el = ref.current
     if (!el) return
     if (el.paused) {
-      el.play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false))
+      playWithFade(el, FADE_MANUAL_MS)
     } else {
+      stopFade()
       el.pause()
       setPlaying(false)
     }
@@ -127,7 +169,7 @@ export function MusicPlayer({
           max={1}
           step={0.01}
           value={volume}
-          onChange={(e) => setVolume(Number(e.target.value))}
+          onChange={(e) => changeVolume(Number(e.target.value))}
           aria-label="Volume"
           className="h-1 w-24 cursor-pointer"
           style={{ accentColor: accent }}
