@@ -11,7 +11,7 @@ import {
   MapPin,
   PartyPopper,
   Share2,
-  Sparkles,
+  Undo2,
   X,
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
@@ -103,6 +103,17 @@ export default function PublicInvite() {
       })
     : ""
 
+  /** Volta o convite pro estado fechado (envelope) — dá pra abrir de novo. */
+  function closeInvite() {
+    setRsvpOpen(false)
+    setShareOpen(false)
+    setAgendaOpen(false)
+    setGiftOpen(false)
+    setOpened(false)
+    setReplay((n) => n + 1)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
@@ -159,7 +170,7 @@ export default function PublicInvite() {
           title={fields.title}
           background={template.style.background}
           accentColor={accent}
-          motif={template.style.motif}
+          motif={fields.motif !== undefined ? fields.motif : template.style.motif}
           onOpen={() => setOpened(true)}
         />
       ) : null}
@@ -218,10 +229,11 @@ export default function PublicInvite() {
               size="lg"
               variant="secondary"
               className="shadow-lg"
-              onClick={() => setReplay((n) => n + 1)}
-              aria-label="Repetir animação"
+              onClick={closeInvite}
+              aria-label="Fechar convite e ver a abertura de novo"
             >
-              <Sparkles className="size-4" />
+              <Undo2 className="size-4" />
+              Fechar
             </Button>
           </div>
         </div>
