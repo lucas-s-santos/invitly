@@ -12,8 +12,6 @@ import {
 import { toast } from "sonner"
 
 import { useInvite, usePublishInvite, useUpdateInvite } from "@/hooks/useInvites"
-import { useAuth } from "@/hooks/useAuth"
-import { isAdminEmail } from "@/lib/admin"
 import { getTemplate } from "@/lib/templates"
 import { formatLongDate } from "@/lib/date"
 import { premiumFeaturesUsed } from "@/lib/plans"
@@ -41,14 +39,12 @@ const PREMIUM_FEATURES = [
 
 export default function Checkout() {
   const { id } = useParams()
-  const { user } = useAuth()
   const { data: invite, isLoading } = useInvite(id)
   const publish = usePublishInvite()
   const update = useUpdateInvite()
   const [redirecting, setRedirecting] = useState(false)
   const [plan, setPlan] = useState<InvitePlan>("basico")
   const planInitRef = useRef(false)
-  const isAdmin = isAdminEmail(user?.email)
 
   // Marca o plano uma única vez, quando o convite carrega: se a pessoa
   // configurou recursos Premium no editor, o Premium já vem selecionado.
@@ -245,27 +241,6 @@ export default function Checkout() {
                     >
                       <Crown className="size-4" />
                       Mudar para Premium ({premiumPrice})
-                    </Button>
-                  </div>
-                ) : null}
-
-                {isAdmin ? (
-                  <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
-                    <p className="text-xs font-medium text-primary">
-                      👑 Conta administradora — publica sem pagar.
-                    </p>
-                    <Button
-                      size="lg"
-                      className="w-full"
-                      disabled={publish.isPending || update.isPending}
-                      onClick={() => void freePublish()}
-                    >
-                      {publish.isPending || update.isPending ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <ShieldCheck className="size-4" />
-                      )}
-                      Publicar grátis (admin)
                     </Button>
                   </div>
                 ) : null}
