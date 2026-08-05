@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -29,6 +29,7 @@ import {
   clearGuestDraft,
   hasPublishIntent,
   loadGuestDraft,
+  type GuestDraft,
 } from "@/lib/guestDraft"
 import { useMyRsvpSummary, type RsvpSummary } from "@/hooks/useRsvp"
 import { getTemplate } from "@/lib/templates"
@@ -67,9 +68,18 @@ export default function Dashboard() {
   const createInvite = useCreateInvite()
   // Rascunho montado sem conta (fica no navegador) — não pode se perder.
   // Com intenção de publicar quem cuida é o GuestPublishResumer.
-  const [draft, setDraft] = useState(() =>
-    hasPublishIntent() ? null : loadGuestDraft(),
-  )
+  const [draft, setDraft] = useState<GuestDraft | null>(null)
+
+  useEffect(() => {
+    if (hasPublishIntent()) return
+    let active = true
+    void loadGuestDraft().then((d) => {
+      if (active) setDraft(d)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   function recoverDraft() {
     if (!draft) return
@@ -81,7 +91,7 @@ export default function Dashboard() {
       },
       {
         onSuccess: (inv) => {
-          clearGuestDraft()
+          void clearGuestDraft()
           setDraft(null)
           toast.success("Convite salvo na sua conta!")
           navigate(`/editor/${inv.id}`)
@@ -92,7 +102,7 @@ export default function Dashboard() {
   }
 
   function discardDraft() {
-    clearGuestDraft()
+    void clearGuestDraft()
     setDraft(null)
   }
 

@@ -24,29 +24,31 @@ export function GuestPublishResumer() {
 
   useEffect(() => {
     if (doneRef.current || !user || !hasPublishIntent()) return
-    const draft = loadGuestDraft()
-    if (!draft) {
-      clearGuestDraft()
-      return
-    }
     doneRef.current = true
-    createInvite.mutate(
-      {
-        templateId: draft.templateId,
-        category: draft.category,
-        fields: draft.fields,
-      },
-      {
-        onSuccess: (inv) => {
-          clearGuestDraft()
-          navigate(`/checkout/${inv.id}`)
+
+    void loadGuestDraft().then((draft) => {
+      if (!draft) {
+        void clearGuestDraft()
+        return
+      }
+      createInvite.mutate(
+        {
+          templateId: draft.templateId,
+          category: draft.category,
+          fields: draft.fields,
         },
-        onError: () => {
-          doneRef.current = false
-          toast.error("Não foi possível salvar seu convite. Tente novamente.")
+        {
+          onSuccess: (inv) => {
+            void clearGuestDraft()
+            navigate(`/checkout/${inv.id}`)
+          },
+          onError: () => {
+            doneRef.current = false
+            toast.error("Não foi possível salvar seu convite. Tente novamente.")
+          },
         },
-      },
-    )
+      )
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 

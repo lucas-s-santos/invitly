@@ -37,16 +37,24 @@ export async function uploadInviteImage(
   return uploadToBucket(file, inviteId)
 }
 
-/** Faz upload de um áudio (música do convite) e retorna a URL. */
-export async function uploadInviteAudio(
-  file: File,
-  inviteId: string,
-): Promise<string> {
+/**
+ * Valida um áudio antes de usar. Vale para os dois caminhos: upload direto
+ * (com conta) e rascunho embutido no navegador (sem conta).
+ */
+export function assertValidAudio(file: File) {
   if (!file.type.startsWith("audio/")) {
     throw new Error("Envie um arquivo de áudio (mp3, m4a...).")
   }
   if (file.size > MAX_AUDIO_BYTES) {
     throw new Error("Áudio muito grande (máx. 10 MB).")
   }
+}
+
+/** Faz upload de um áudio (música do convite) e retorna a URL. */
+export async function uploadInviteAudio(
+  file: File,
+  inviteId: string,
+): Promise<string> {
+  assertValidAudio(file)
   return uploadToBucket(file, inviteId)
 }

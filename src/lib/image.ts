@@ -35,6 +35,14 @@ export async function compressImageToDataUrl(
   return canvas.toDataURL("image/jpeg", quality)
 }
 
+/**
+ * Lê um arquivo qualquer (ex: mp3) como data URL, sem recomprimir. Usado no
+ * rascunho de convidado, que guarda a mídia embutida até a publicação.
+ */
+export function fileToDataUrl(file: File): Promise<string> {
+  return readAsDataUrl(file)
+}
+
 /** Converte um data URL em File (para reenviar ao Storage). */
 export async function dataUrlToFile(
   dataUrl: string,

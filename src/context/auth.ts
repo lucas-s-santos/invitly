@@ -5,6 +5,12 @@ export interface AuthContextValue {
   session: Session | null
   user: User | null
   loading: boolean
+  /**
+   * E-mail da conta de administrador cuja sessão foi restaurada do navegador
+   * sem login de verdade nesta sessão. Enquanto isso, `user` e `session` ficam
+   * nulos: o painel só abre depois de digitar e-mail e senha outra vez.
+   */
+  pendingReauthEmail: string | null
   signInWithPassword: (
     email: string,
     password: string,

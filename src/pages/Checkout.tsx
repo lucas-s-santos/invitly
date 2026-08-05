@@ -9,9 +9,7 @@ import {
   Rocket,
   ShieldCheck,
 } from "lucide-react"
-import { toast } from "sonner"
-
-import { useInvite, usePublishInvite, useUpdateInvite } from "@/hooks/useInvites"
+import { useInvite, useUpdateInvite } from "@/hooks/useInvites"
 import { getTemplate } from "@/lib/templates"
 import { formatLongDate } from "@/lib/date"
 import { premiumFeaturesUsed } from "@/lib/plans"
@@ -40,7 +38,6 @@ const PREMIUM_FEATURES = [
 export default function Checkout() {
   const { id } = useParams()
   const { data: invite, isLoading } = useInvite(id)
-  const publish = usePublishInvite()
   const update = useUpdateInvite()
   const [redirecting, setRedirecting] = useState(false)
   const [plan, setPlan] = useState<InvitePlan>("basico")
@@ -98,15 +95,6 @@ export default function Checkout() {
     const sep = chosenUrl.includes("?") ? "&" : "?"
     // sck = rastreio da Kiwify (volta no webhook p/ publicar o convite certo)
     window.location.href = `${chosenUrl}${sep}sck=${invite.id}`
-  }
-
-  async function freePublish() {
-    if (!invite) return
-    await persistPlan()
-    publish.mutate(invite.id, {
-      onSuccess: () => toast.success("Publicado! 🎉"),
-      onError: () => toast.error("Não foi possível publicar."),
-    })
   }
 
   return (
@@ -264,19 +252,6 @@ export default function Checkout() {
                     O plano Premium ainda está sendo configurado. Escolha o
                     Básico ou tente em instantes.
                   </div>
-                ) : import.meta.env.DEV ? (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full"
-                    disabled={publish.isPending}
-                    onClick={() => void freePublish()}
-                  >
-                    {publish.isPending ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : null}
-                    [DEV] Publicar em modo de teste
-                  </Button>
                 ) : (
                   <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
                     Pagamento temporariamente indisponível.

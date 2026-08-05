@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { CATEGORIES } from "@/lib/categories"
 import { getTemplatesByCategory } from "@/lib/templates"
@@ -21,7 +22,7 @@ export default function TemplateSelect() {
   const createInvite = useCreateInvite()
   const [pending, setPending] = useState<string | null>(null)
 
-  function pick(categoryId: string) {
+  async function pick(categoryId: string) {
     const tpl = getTemplatesByCategory(categoryId)[0]
     if (!tpl) return
 
@@ -35,12 +36,18 @@ export default function TemplateSelect() {
         },
       )
     } else {
-      saveGuestDraft({
-        templateId: tpl.id,
-        category: categoryId,
-        fields: tpl.defaultData,
-      })
-      navigate("/criar/editor")
+      setPending(categoryId)
+      try {
+        await saveGuestDraft({
+          templateId: tpl.id,
+          category: categoryId,
+          fields: tpl.defaultData,
+        })
+        navigate("/criar/editor")
+      } catch {
+        setPending(null)
+        toast.error("Não foi possível começar o convite neste navegador.")
+      }
     }
   }
 
@@ -81,7 +88,7 @@ export default function TemplateSelect() {
                 key={cat.id}
                 type="button"
                 disabled={createInvite.isPending}
-                onClick={() => pick(cat.id)}
+                onClick={() => void pick(cat.id)}
                 className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-border shadow-sm transition-transform hover:-translate-y-1 disabled:opacity-60"
               >
                 {photo ? (

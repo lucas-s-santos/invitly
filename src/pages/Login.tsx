@@ -4,7 +4,13 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react"
 
 import { useAuth } from "@/hooks/useAuth"
 import { isSupabaseConfigured } from "@/lib/supabase"
@@ -26,7 +32,14 @@ type Mode = "login" | "signup"
 
 export default function Login() {
   const { t } = useTranslation()
-  const { user, signInWithPassword, signUp, signInWithGoogle } = useAuth()
+  const {
+    user,
+    pendingReauthEmail,
+    signInWithPassword,
+    signUp,
+    signInWithGoogle,
+    signOut,
+  } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const navState = location.state as {
@@ -36,6 +49,10 @@ export default function Login() {
   const from = navState?.from ?? "/dashboard"
   const publishIntent = navState?.intent === "publish"
 
+  // Quem veio publicar quer criar a conta dele — não reentrar na conta que
+  // ficou salva no navegador. O aviso de admin só vale fora desse fluxo.
+  const reauthEmail = publishIntent ? null : pendingReauthEmail
+
   const [mode, setMode] = useState<Mode>(publishIntent ? "signup" : "login")
   const [serverError, setServerError] = useState<string | null>(null)
   const [signupDone, setSignupDone] = useState(false)
@@ -43,15 +60,17 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    reset,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: reauthEmail ?? "", password: "" },
   })
 
+  // Já entrou de verdade: segue pra onde queria ir (padrão: o painel).
   if (user) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to={from} replace />
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -98,7 +117,7 @@ export default function Login() {
           <Button asChild variant="ghost" size="sm" className="lg:invisible">
             <Link to="/">
               <ArrowLeft className="size-4" />
-              {t("brand")}
+              Início
             </Link>
           </Button>
           <div className="flex items-center gap-2">
@@ -108,7 +127,28 @@ export default function Login() {
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
-          {publishIntent ? (
+          {reauthEmail && isLogin ? (
+            <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              <p className="flex items-center gap-1.5 font-semibold">
+                <ShieldCheck className="size-4 shrink-0" />
+                Confirme que é você
+              </p>
+              <p className="mt-1">
+                Esta é uma conta de administrador. Por segurança, entre com{" "}
+                <strong>{reauthEmail}</strong> e a senha para abrir o painel.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  reset({ name: "", email: "", password: "" })
+                  void signOut()
+                }}
+                className="mt-2 font-medium underline underline-offset-2"
+              >
+                Não é você? Sair desta conta
+              </button>
+            </div>
+          ) : publishIntent ? (
             <div className="mb-5 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
               ✨ Falta pouco! Crie sua conta para <strong>publicar</strong> o
               convite que você acabou de montar.
@@ -131,6 +171,10 @@ export default function Login() {
                   setMode(m)
                   setServerError(null)
                   setSignupDone(false)
+                  // Sai do "confirme sua senha": a próxima conta é outra pessoa
+                  if (reauthEmail) {
+                    reset({ name: "", email: "", password: "" })
+                  }
                 }}
                 className={
                   "flex-1 rounded-md px-4 py-1.5 transition-colors " +

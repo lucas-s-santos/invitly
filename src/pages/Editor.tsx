@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
@@ -27,9 +27,13 @@ import {
   useUpdateInvite,
 } from "@/hooks/useInvites"
 import { useAuth } from "@/hooks/useAuth"
-import { getTemplate, getTemplatesByCategory } from "@/lib/templates"
-import { uploadInviteImage, uploadInviteAudio } from "@/lib/storage"
-import { compressImageToDataUrl } from "@/lib/image"
+import { getTemplate } from "@/lib/templates"
+import {
+  assertValidAudio,
+  uploadInviteImage,
+  uploadInviteAudio,
+} from "@/lib/storage"
+import { compressImageToDataUrl, fileToDataUrl } from "@/lib/image"
 import { FONT_OPTIONS } from "@/lib/fonts"
 import { PREMIUM_PRICE, premiumFeaturesUsed } from "@/lib/plans"
 import { backgroundsForCategory, type BgOption } from "@/lib/templateBackgrounds"
@@ -38,10 +42,11 @@ import {
   loadGuestDraft,
   saveGuestDraft,
   setPublishIntent,
+  type GuestDraft,
 } from "@/lib/guestDraft"
 import { BACKGROUND_PATTERNS, type BackgroundPattern } from "@/lib/backgrounds"
 import { cn } from "@/lib/utils"
-import type { InviteFields, Template } from "@/types"
+import type { InviteFields } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,7 +56,6 @@ import { PagePlaceholder } from "@/components/PagePlaceholder"
 import { InviteRenderer } from "@/components/invite/InviteRenderer"
 import { PhotoAdjuster } from "@/components/invite/PhotoAdjuster"
 import { GalleryCarousel } from "@/components/invite/GalleryCarousel"
-import { TemplatePreview } from "@/components/invite/TemplatePreview"
 
 type SaveStatus = "idle" | "saving" | "saved"
 
@@ -65,10 +69,24 @@ export default function Editor() {
   const update = useUpdateInvite()
   const createInvite = useCreateInvite()
 
-  const guestDraft = useMemo(
-    () => (isGuest ? loadGuestDraft() : null),
-    [isGuest],
-  )
+  // O rascunho vem do IndexedDB, então chega depois da primeira renderização
+  const [guestDraft, setGuestDraft] = useState<GuestDraft | null>(null)
+  const [draftLoading, setDraftLoading] = useState(isGuest)
+
+  useEffect(() => {
+    if (!isGuest) return
+    let active = true
+    void loadGuestDraft()
+      .then((d) => {
+        if (active) setGuestDraft(d)
+      })
+      .finally(() => {
+        if (active) setDraftLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [isGuest])
 
   const [fields, setFields] = useState<InviteFields | null>(null)
   const [templateId, setTemplateId] = useState<string | null>(null)
@@ -108,21 +126,27 @@ export default function Editor() {
     }
   }, [invite, isGuest, guestDraft])
 
-  // Auto-save com debounce (1.2s) — banco ou localStorage
+  // Auto-save com debounce (1.2s) — banco ou rascunho no navegador
   useEffect(() => {
     if (!fields || !dirtyRef.current) return
     setSaveStatus("saving")
     const timeout = setTimeout(() => {
       if (isGuest) {
-        if (guestDraft) {
-          saveGuestDraft({
-            templateId: guestDraft.templateId,
-            category: guestDraft.category,
-            fields,
+        if (!guestDraft) return
+        void saveGuestDraft({
+          templateId: guestDraft.templateId,
+          category: guestDraft.category,
+          fields,
+        })
+          .then(() => {
+            dirtyRef.current = false
+            setSaveStatus("saved")
           })
-        }
-        dirtyRef.current = false
-        setSaveStatus("saved")
+          .catch(() => {
+            // Falhar calado aqui = a pessoa perde o convite sem saber
+            setSaveStatus("idle")
+            toast.error("Não foi possível salvar o rascunho neste navegador.")
+          })
       } else if (id) {
         update.mutate(
           { id, title: fields.title, fields },
@@ -144,6 +168,7 @@ export default function Editor() {
 
   if (publishing) return <FullScreenLoader />
   if (!isGuest && isLoading) return <FullScreenLoader />
+  if (isGuest && draftLoading) return <FullScreenLoader />
   if (isGuest && !guestDraft) {
     return (
       <PagePlaceholder
@@ -191,54 +216,13 @@ export default function Editor() {
       background_image: bg.img,
       background_overlay: bg.overlay,
       text_mode: bg.textDark ? "dark" : undefined,
+      // foto e padrão de cor são a mesma escolha: um desfaz o outro
+      background_color: undefined,
       background_position: undefined,
       background_zoom: undefined,
       background_blur: undefined,
       background_filter: undefined,
     })
-  }
-
-  function switchTemplate(tpl: Template) {
-    if (!fields) return
-    setTemplateId(tpl.id)
-    const d = tpl.defaultData
-
-    let newFields: InviteFields
-    if (!touchedRef.current) {
-      // Convite em branco / navegando modelos: carrega o exemplo completo (foto + texto)
-      newFields = { ...d }
-    } else {
-      // Já personalizado: mantém o texto; troca a foto só se ainda for a de um modelo
-      const usingTemplatePhoto =
-        !fields.background_image ||
-        fields.background_image.startsWith("/templates/")
-      newFields = usingTemplatePhoto
-        ? {
-            ...fields,
-            background_image: d.background_image,
-            background_overlay: d.background_overlay,
-            text_mode: d.text_mode,
-          }
-        : fields
-    }
-
-    setFields(newFields)
-    dirtyRef.current = true
-    if (isGuest) {
-      if (guestDraft)
-        saveGuestDraft({
-          templateId: tpl.id,
-          category: tpl.category,
-          fields: newFields,
-        })
-    } else if (id) {
-      update.mutate({
-        id,
-        templateId: tpl.id,
-        category: tpl.category,
-        fields: newFields,
-      })
-    }
   }
 
   function applyPattern(p: BackgroundPattern) {
@@ -255,11 +239,21 @@ export default function Editor() {
     )
   }
 
+  /** "Tema": volta ao fundo do próprio modelo — sem foto e sem padrão. */
   function resetBackground() {
     dirtyRef.current = true
     setFields((prev) =>
       prev
-        ? { ...prev, background_color: undefined, text_mode: undefined }
+        ? {
+            ...prev,
+            background_color: undefined,
+            background_image: undefined,
+            text_mode: undefined,
+            background_position: undefined,
+            background_zoom: undefined,
+            background_blur: undefined,
+            background_filter: undefined,
+          }
         : prev,
     )
   }
@@ -327,12 +321,19 @@ export default function Editor() {
   }
 
   // Upload de mp3 (só logado — áudio é pesado demais p/ rascunho local).
+  // Convidado guarda a mídia embutida no rascunho; o upload pro Storage
+  // acontece em useCreateInvite, na hora de publicar.
   async function handleAudioFile(file: File | undefined) {
-    if (!file || !id) return
+    if (!file) return
     setUploading(true)
     try {
-      set("music_url", await uploadInviteAudio(file, id))
-      toast.success("Música enviada!")
+      if (isGuest) {
+        assertValidAudio(file)
+        set("music_url", await fileToDataUrl(file))
+      } else if (id) {
+        set("music_url", await uploadInviteAudio(file, id))
+      }
+      toast.success("Música adicionada!")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Falha ao enviar o áudio.")
     } finally {
@@ -342,10 +343,15 @@ export default function Editor() {
   }
 
   async function handleGalleryFile(file: File | undefined) {
-    if (!file || !id) return
+    if (!file) return
     setUploading(true)
     try {
-      const url = await uploadInviteImage(file, id)
+      const url = isGuest
+        ? await compressImageToDataUrl(file, 1400)
+        : id
+          ? await uploadInviteImage(file, id)
+          : ""
+      if (!url) return
       dirtyRef.current = true
       setFields((prev) =>
         prev ? { ...prev, gallery: [...(prev.gallery ?? []), url] } : prev,
@@ -369,7 +375,7 @@ export default function Editor() {
     )
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     if (!fields) return
     const missing: string[] = []
     if (!fields.title.trim()) missing.push("título")
@@ -381,12 +387,18 @@ export default function Editor() {
 
     if (isGuest) {
       if (!guestDraft) return
-      // salva o rascunho atual antes de seguir
-      saveGuestDraft({
-        templateId: guestDraft.templateId,
-        category: guestDraft.category,
-        fields,
-      })
+      // salva o rascunho atual antes de seguir — se falhar, não adianta ir
+      // pro cadastro: o convite não estaria lá quando voltasse
+      try {
+        await saveGuestDraft({
+          templateId: guestDraft.templateId,
+          category: guestDraft.category,
+          fields,
+        })
+      } catch {
+        toast.error("Não foi possível salvar o convite neste navegador.")
+        return
+      }
       if (user) {
         // já logado: cria o convite e vai pro checkout
         setPublishing(true)
@@ -398,7 +410,7 @@ export default function Editor() {
           },
           {
             onSuccess: (inv) => {
-              clearGuestDraft()
+              void clearGuestDraft()
               navigate(`/checkout/${inv.id}`)
             },
             onError: () => {
@@ -456,7 +468,7 @@ export default function Editor() {
                 </a>
               </Button>
             ) : (
-              <Button size="sm" onClick={handlePublish}>
+              <Button size="sm" onClick={() => void handlePublish()}>
                 <Rocket className="size-4" />
                 Publicar
               </Button>
@@ -530,72 +542,6 @@ export default function Editor() {
             </div>
           ) : null}
 
-          {/* Trocar o estilo do modelo (variações da mesma ocasião) */}
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">Estilo do modelo</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Toque para trocar o visual — seu conteúdo é mantido.
-            </p>
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              {getTemplatesByCategory(template.category).map((tpl) => (
-                <button
-                  key={tpl.id}
-                  type="button"
-                  onClick={() => switchTemplate(tpl)}
-                  title={tpl.name}
-                  aria-label={`Usar modelo ${tpl.name}`}
-                  className={cn(
-                    "shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
-                    tpl.id === templateId
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "border-transparent",
-                  )}
-                >
-                  <TemplatePreview
-                    template={tpl}
-                    baseW={300}
-                    baseH={400}
-                    className="w-16"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Fundo do convite — fundos prontos da ocasião */}
-          {backgroundsForCategory(template.category).length > 1 ? (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm font-semibold">Fundo do convite</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Escolha um fundo pronto da ocasião — ou suba o seu na seção
-                “Foto de fundo”.
-              </p>
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {backgroundsForCategory(template.category).map((bg) => (
-                  <button
-                    key={bg.img}
-                    type="button"
-                    onClick={() => applyBackground(bg)}
-                    aria-label="Usar este fundo"
-                    className={cn(
-                      "h-20 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105",
-                      fields.background_image === bg.img
-                        ? "border-primary ring-2 ring-primary/30"
-                        : "border-transparent",
-                    )}
-                  >
-                    <img
-                      src={bg.img}
-                      alt=""
-                      aria-hidden
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
           <Field label="Título do evento" hint={`${fields.title.length}/80`}>
             <Input
               placeholder="Ex: Nosso Casamento"
@@ -656,23 +602,49 @@ export default function Editor() {
             />
           </Field>
 
-          {/* Padrões de fundo */}
+          {/* Fundo do convite — fotos da ocasião + padrões de cor, lado a lado */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-semibold">Padrões de fundo</p>
+            <p className="text-sm font-semibold">Fundo do convite</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Fotos da ocasião e padrões de cor — ou suba a sua em “Foto de
+              fundo”.
+            </p>
             <div className="mt-3 grid grid-cols-5 gap-2">
               <button
                 type="button"
                 onClick={resetBackground}
-                title="Usar o fundo do template"
+                title="Voltar ao fundo do modelo (tira foto e padrão)"
                 className={cn(
                   "flex aspect-square items-center justify-center rounded-lg border text-[10px] font-medium text-muted-foreground",
-                  !fields.background_color
+                  !fields.background_color && !fields.background_image
                     ? "border-primary ring-2 ring-primary/30"
                     : "border-border hover:border-primary/50",
                 )}
               >
                 Tema
               </button>
+              {backgroundsForCategory(template.category).map((bg) => (
+                <button
+                  key={bg.img}
+                  type="button"
+                  onClick={() => applyBackground(bg)}
+                  title="Usar esta foto de fundo"
+                  aria-label="Usar esta foto de fundo"
+                  className={cn(
+                    "aspect-square overflow-hidden rounded-lg border transition-transform hover:scale-105",
+                    fields.background_image === bg.img
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border",
+                  )}
+                >
+                  <img
+                    src={bg.img}
+                    alt=""
+                    aria-hidden
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
               {BACKGROUND_PATTERNS.map((p) => (
                 <button
                   key={p.id}
@@ -1100,36 +1072,27 @@ export default function Editor() {
                 value={fields.music_url ?? ""}
                 onChange={(e) => set("music_url", e.target.value || undefined)}
               />
-              {!isGuest ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    disabled={uploading}
-                    onClick={() => audioFileRef.current?.click()}
-                  >
-                    {uploading ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Music className="size-4" />
-                    )}
-                    Enviar mp3
-                  </Button>
-                  <input
-                    ref={audioFileRef}
-                    type="file"
-                    accept="audio/*"
-                    className="hidden"
-                    onChange={(e) => void handleAudioFile(e.target.files?.[0])}
-                  />
-                </>
-              ) : (
-                <p className="text-[11px] text-muted-foreground">
-                  Enviar o arquivo de música libera ao criar a conta — por ora,
-                  cole um link.
-                </p>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={uploading}
+                onClick={() => audioFileRef.current?.click()}
+              >
+                {uploading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Music className="size-4" />
+                )}
+                Enviar mp3
+              </Button>
+              <input
+                ref={audioFileRef}
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={(e) => void handleAudioFile(e.target.files?.[0])}
+              />
             </div>
 
             {fields.music_url ? (
@@ -1309,83 +1272,72 @@ export default function Editor() {
               📸 Galeria de fotos
               <PremiumBadge />
             </p>
-            {isGuest ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                📷 A galeria libera quando você criar sua conta (na hora de
-                publicar).
-              </p>
-            ) : (
-              <>
-                {fields.gallery && fields.gallery.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {fields.gallery.map((url) => (
-                      <div key={url} className="group relative aspect-square">
-                        <img
-                          src={url}
-                          alt=""
-                          className="h-full w-full rounded-lg object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeGalleryImage(url)}
-                          className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                          aria-label="Remover foto"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-                <Button
-                  variant="outline"
-                  className="mt-3 w-full"
-                  disabled={uploading}
-                  onClick={() => galleryRef.current?.click()}
-                >
-                  {uploading ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <ImageIcon className="size-4" />
-                  )}
-                  Adicionar foto
-                </Button>
-                <input
-                  ref={galleryRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => void handleGalleryFile(e.target.files?.[0])}
-                />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Aparecem num carrossel no convite. JPG ou PNG até 5 MB cada.
-                </p>
-                {fields.gallery && fields.gallery.length > 0 ? (
-                  <div className="mt-3">
-                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Altura das fotos</span>
-                      <span className="tabular-nums">
-                        {fields.gallery_height ?? 128}px
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={80}
-                      max={220}
-                      value={fields.gallery_height ?? 128}
-                      onChange={(e) =>
-                        set("gallery_height", Number(e.target.value))
-                      }
-                      className="h-1.5 w-full cursor-pointer"
-                      style={{
-                        accentColor:
-                          fields.primary_color ?? template.style.accentColor,
-                      }}
+            {fields.gallery && fields.gallery.length > 0 ? (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {fields.gallery.map((url) => (
+                  <div key={url} className="group relative aspect-square">
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-full w-full rounded-lg object-cover"
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryImage(url)}
+                      className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Remover foto"
+                    >
+                      <X className="size-3" />
+                    </button>
                   </div>
-                ) : null}
-              </>
-            )}
+                ))}
+              </div>
+            ) : null}
+            <Button
+              variant="outline"
+              className="mt-3 w-full"
+              disabled={uploading}
+              onClick={() => galleryRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ImageIcon className="size-4" />
+              )}
+              Adicionar foto
+            </Button>
+            <input
+              ref={galleryRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void handleGalleryFile(e.target.files?.[0])}
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Aparecem num carrossel no convite. JPG ou PNG até 5 MB cada.
+            </p>
+            {fields.gallery && fields.gallery.length > 0 ? (
+              <div className="mt-3">
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Altura das fotos</span>
+                  <span className="tabular-nums">
+                    {fields.gallery_height ?? 128}px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={80}
+                  max={220}
+                  value={fields.gallery_height ?? 128}
+                  onChange={(e) => set("gallery_height", Number(e.target.value))}
+                  className="h-1.5 w-full cursor-pointer"
+                  style={{
+                    accentColor:
+                      fields.primary_color ?? template.style.accentColor,
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 

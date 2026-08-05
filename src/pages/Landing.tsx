@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useEffect, useState, type CSSProperties } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -14,6 +14,8 @@ import {
 
 import { getTemplate, TEMPLATES } from "@/lib/templates"
 import { CATEGORIES } from "@/lib/categories"
+import { useAuth } from "@/hooks/useAuth"
+import { loadGuestDraft } from "@/lib/guestDraft"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LanguageToggle } from "@/components/LanguageToggle"
@@ -44,6 +46,24 @@ export default function Landing() {
 
 function Navbar({ ctaTo }: { ctaTo: string }) {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  // Voltar pro início não pode perder o convite montado sem conta.
+  const [hasDraft, setHasDraft] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setHasDraft(false)
+      return
+    }
+    let active = true
+    void loadGuestDraft().then((d) => {
+      if (active) setHasDraft(Boolean(d))
+    })
+    return () => {
+      active = false
+    }
+  }, [user])
+
   const links = [
     { href: "#como-funciona", label: t("nav.howItWorks") },
     { href: "#templates", label: t("nav.templates") },
@@ -68,10 +88,14 @@ function Navbar({ ctaTo }: { ctaTo: string }) {
           <ThemeToggle className="hidden sm:inline-flex" />
           <LanguageToggle className="hidden sm:inline-flex" />
           <Button asChild variant="ghost" size="sm">
-            <Link to="/login">{t("nav.login")}</Link>
+            <Link to={user ? "/dashboard" : "/login"}>
+              {user ? t("nav.dashboard") : t("nav.login")}
+            </Link>
           </Button>
           <Button asChild size="sm">
-            <Link to={ctaTo}>{t("nav.createCta")}</Link>
+            <Link to={hasDraft ? "/criar/editor" : ctaTo}>
+              {hasDraft ? "Continuar convite" : t("nav.createCta")}
+            </Link>
           </Button>
         </div>
       </div>

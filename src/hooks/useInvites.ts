@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase"
 import { buildInviteSlug } from "@/lib/slug"
 import { getTemplateDefaults } from "@/lib/templates"
-import { uploadInviteImage } from "@/lib/storage"
+import { uploadInviteAudio, uploadInviteImage } from "@/lib/storage"
 import { dataUrlToFile, isDataUrl } from "@/lib/image"
 import type { Invite, InviteFields } from "@/types"
 
@@ -108,16 +108,23 @@ export function useCreateInvite() {
       const content = fields ?? defaults
       const title = content.title?.trim() || "Convite"
 
-      // Imagens embutidas (rascunho de convidado): não guarda base64 no banco —
-      // insere sem elas e depois sobe pro Storage, trocando pela URL pública.
-      const imageFields: (keyof InviteFields)[] = [
+      // Mídia embutida (rascunho de convidado): não guarda base64 no banco —
+      // insere sem ela e depois sobe pro Storage, trocando pela URL pública.
+      const mediaFields: (keyof InviteFields)[] = [
         "background_image",
         "music_cover",
+        "music_url",
       ]
-      const inlineKeys = imageFields.filter((k) => isDataUrl(content[k] as string))
+      const inlineKeys = mediaFields.filter((k) => isDataUrl(content[k] as string))
+      const inlineGallery = (content.gallery ?? []).filter(isDataUrl)
 
       const insertContent = { ...content }
       for (const k of inlineKeys) insertContent[k] = undefined as never
+      if (inlineGallery.length > 0) {
+        insertContent.gallery = (content.gallery ?? []).filter(
+          (url) => !isDataUrl(url),
+        )
+      }
 
       const { data, error } = await supabase
         .from("invites")
@@ -133,16 +140,41 @@ export function useCreateInvite() {
         .single()
       if (error) throw error
 
-      if (inlineKeys.length > 0) {
+      if (inlineKeys.length > 0 || inlineGallery.length > 0) {
         const patched = { ...content }
+
         for (const k of inlineKeys) {
           try {
-            const file = await dataUrlToFile(content[k] as string, `${k}.jpg`)
-            patched[k] = (await uploadInviteImage(file, data.id)) as never
+            const raw = content[k] as string
+            if (k === "music_url") {
+              const file = await dataUrlToFile(raw, "musica.mp3")
+              patched[k] = (await uploadInviteAudio(file, data.id)) as never
+            } else {
+              const file = await dataUrlToFile(raw, `${k}.jpg`)
+              patched[k] = (await uploadInviteImage(file, data.id)) as never
+            }
           } catch {
-            patched[k] = undefined as never // se falhar, segue sem essa imagem
+            patched[k] = undefined as never // se falhar, segue sem essa mídia
           }
         }
+
+        if (inlineGallery.length > 0) {
+          const uploaded: string[] = []
+          for (const url of content.gallery ?? []) {
+            if (!isDataUrl(url)) {
+              uploaded.push(url) // já era URL pública
+              continue
+            }
+            try {
+              const file = await dataUrlToFile(url, "galeria.jpg")
+              uploaded.push(await uploadInviteImage(file, data.id))
+            } catch {
+              // foto que falhou fica de fora, o resto da galeria segue
+            }
+          }
+          patched.gallery = uploaded
+        }
+
         const { data: updated, error: upErr } = await supabase
           .from("invites")
           .update({ data: patched })
@@ -249,25 +281,7 @@ export function useDuplicateInvite() {
   })
 }
 
-/**
- * Publica o convite (temporário: até a Fase 3 com Kiwify, publicamos direto).
- */
-export function usePublishInvite() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (id: string): Promise<Invite> => {
-      const { data, error } = await supabase
-        .from("invites")
-        .update({ status: "published" })
-        .eq("id", id)
-        .select()
-        .single()
-      if (error) throw error
-      return data
-    },
-    onSuccess: (invite) => {
-      qc.setQueryData(inviteKeys.detail(invite.id), invite)
-      void qc.invalidateQueries({ queryKey: inviteKeys.mine })
-    },
-  })
-}
+// Não existe hook de publicar de propósito: `invites.status` é bloqueado no
+// banco para quem chega pelo navegador (migration 0006_publish_guard.sql).
+// Quem publica é o webhook da Kiwify (service_role) ou o painel admin, via
+// admin_set_invite_status(). Qualquer update de status daqui seria recusado.
